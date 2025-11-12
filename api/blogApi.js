@@ -1,5 +1,6 @@
 const POSTS_STORAGE_KEY = 'personal_blog.posts';
 const USER_STORAGE_KEY = 'personal_blog.current_user';
+const COMMENTS_STORAGE_KEY = 'personal_blog.comments';
 
 const FALLBACK_USER = {
   id: 'owner',
@@ -100,6 +101,7 @@ const readUser = () => {
 };
 
 const nextId = () => `post-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+const nextCommentId = () => `comment-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 
 const computeReadingTime = (content = '') => {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
@@ -131,6 +133,16 @@ const readFileAsDataUrl = (file) =>
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
+
+const readComments = () => {
+  if (!isBrowser) return [];
+  return safeParse(window.localStorage.getItem(COMMENTS_STORAGE_KEY), []);
+};
+
+const writeComments = (comments) => {
+  if (!isBrowser) return;
+  window.localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
+};
 
 export const blogApi = {
   async getCurrentUser() {
@@ -198,6 +210,35 @@ export const blogApi = {
     } catch (error) {
       throw new Error(error.message || 'Could not process the image');
     }
+  },
+
+  async getComments(postId) {
+    await delay();
+    const comments = readComments();
+    return comments.filter(comment => comment.postId === postId).sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  },
+
+  async addComment(postId, author, content) {
+    await delay();
+    const comments = readComments();
+    const newComment = {
+      id: nextCommentId(),
+      postId,
+      author: author || 'Anonymous',
+      content,
+      createdAt: new Date().toISOString()
+    };
+    comments.push(newComment);
+    writeComments(comments);
+    return newComment;
+  },
+
+  async deleteComment(commentId) {
+    await delay();
+    const comments = readComments().filter(comment => comment.id !== commentId);
+    writeComments(comments);
   }
 };
 

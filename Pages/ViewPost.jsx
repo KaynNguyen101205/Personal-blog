@@ -7,6 +7,7 @@ import { isAdmin } from "@/utils/auth";
 import { ArrowLeft, Calendar, Clock, Tag, Edit } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
+import CommentSection from "@/Components/blog/CommentSection";
 
 export default function ViewPost() {
   const navigate = useNavigate();
@@ -177,6 +178,9 @@ export default function ViewPost() {
           )}
         </div>
       </article>
+
+      {/* Comments Section */}
+      {post.published && <CommentSection postId={post.id} />}
     </div>
   );
 }

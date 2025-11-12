@@ -2,28 +2,45 @@ import React, { useState, useEffect } from "react";
 import { blogApi } from "@/api/blogApi";
 import { useQuery } from "@tanstack/react-query";
 import BlogPostCard from "@/Components/blog/BlogPostCard";
+import { isAdmin } from "@/utils/auth";
 import { X } from "lucide-react";
 
 export default function Home() {
   const [filterPublished, setFilterPublished] = useState("published");
   const [selectedTag, setSelectedTag] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
+  // Update theme state when it changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(localStorage.getItem('theme') === 'dark');
+    };
+    
+    checkTheme();
+    
+    // Listen for theme changes
+    const handleStorageChange = () => {
+      checkTheme();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically in case theme changes in same window
+    const interval = setInterval(checkTheme, 100);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
+  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882';
+  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
+  const shadowLight = isDarkMode ? '#2a5370' : '#ffffff';
+  const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await blogApi.getCurrentUser();
-        setCurrentUser(user);
-      } catch (error) {
-        setCurrentUser(null);
-      }
-    };
-    loadUser();
-
     // Check for tag in URL
     const urlParams = new URLSearchParams(window.location.search);
     const tagParam = urlParams.get('tag');
@@ -40,7 +57,7 @@ export default function Home() {
 
   const filteredPosts = posts.filter(post => {
     // Only show published posts to non-admin users
-    if (currentUser?.role !== 'admin' && !post.published) return false;
+    if (!isAdmin() && !post.published) return false;
     
     const matchesFilter = filterPublished === "all" || 
                          (filterPublished === "published" && post.published) ||
@@ -51,29 +68,46 @@ export default function Home() {
     return matchesFilter && matchesTag;
   });
 
+  // Filter options - only show draft for admin
+  const filterOptions = isAdmin() ? ["all", "published", "draft"] : ["all", "published"];
+
   return (
     <div className="space-y-8">
-      {/* Filter Section - Only show to admin */}
-      {currentUser?.role === 'admin' && (
-        <div className="neumorphic-shadow rounded-3xl p-6">
-          <div className="flex gap-2 neumorphic-inset rounded-2xl p-2">
-            {["all", "published", "draft"].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setFilterPublished(filter)}
-                className={`px-4 py-2 rounded-xl transition-all duration-300 capitalize font-medium text-sm ${
-                  filterPublished === filter ? 'neumorphic-pressed' : ''
-                }`}
-                style={{ 
-                  color: textColor
-                }}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+      {/* Filter Section */}
+      <div 
+        className="neumorphic-shadow rounded-3xl p-6"
+        style={{
+          backgroundColor: bgColor,
+          boxShadow: `8px 8px 16px ${shadowDark}, -8px -8px 16px ${shadowLight}`
+        }}
+      >
+        <div 
+          className="flex gap-2 neumorphic-inset rounded-2xl p-2"
+          style={{
+            backgroundColor: bgColor,
+            boxShadow: `inset 6px 6px 12px ${shadowDark}, inset -6px -6px 12px ${shadowLight}`
+          }}
+        >
+          {filterOptions.map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setFilterPublished(filter)}
+              className={`px-4 py-2 rounded-xl transition-all duration-300 capitalize font-medium text-sm ${
+                filterPublished === filter ? 'neumorphic-pressed' : ''
+              }`}
+              style={{ 
+                color: textColor,
+                backgroundColor: filterPublished === filter ? bgColor : 'transparent',
+                boxShadow: filterPublished === filter 
+                  ? `inset 4px 4px 8px ${shadowDark}, inset -4px -4px 8px ${shadowLight}`
+                  : 'none'
+              }}
+            >
+              {filter}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Selected Tag Display */}
       {selectedTag && (

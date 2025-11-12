@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { setUserMode } from "@/utils/auth";
-
-const ADMIN_EMAIL = "namkhanh101205";
+import { setUserMode, verifyAdminPassword } from "@/utils/auth";
 
 export default function AuthModal({ onSelect, adminOnly = false }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [showEmailInput, setShowEmailInput] = useState(adminOnly);
+  const [password, setPassword] = useState("");
+  const [showPasswordInput, setShowPasswordInput] = useState(adminOnly);
 
   const handleGuest = () => {
     setUserMode("guest");
@@ -14,19 +12,19 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
   };
 
   const handleAdminClick = () => {
-    setShowEmailInput(true);
+    setShowPasswordInput(true);
   };
 
-  const handleEmailSubmit = (e) => {
+  const handlePasswordSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
     
-    if (email && email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) {
-      setUserMode("admin", email.trim());
+    if (verifyAdminPassword(password)) {
+      setUserMode("admin", true);
       onSelect("admin");
     } else {
-      alert("Access denied. Only the admin email can access admin features.");
-      setEmail("");
+      alert("Access denied. Incorrect password.");
+      setPassword("");
       setIsLoading(false);
     }
   };
@@ -66,7 +64,7 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
         <h2 style={{ marginBottom: "1.5rem", color: textColor, fontSize: "1.5rem", fontWeight: "bold" }}>
           {adminOnly ? "Login as Admin" : "Welcome to Kayane Blog"}
         </h2>
-        {!showEmailInput ? (
+        {!showPasswordInput ? (
           <>
             <p style={{ marginBottom: "2rem", color: subtleTextColor, fontSize: "0.9rem" }}>
               How would you like to access the site?
@@ -111,15 +109,15 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
             </div>
           </>
         ) : (
-          <form onSubmit={handleEmailSubmit}>
+          <form onSubmit={handlePasswordSubmit}>
             <p style={{ marginBottom: "1rem", color: subtleTextColor, fontSize: "0.9rem" }}>
-              Please enter your admin email:
+              Please enter the admin password:
             </p>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
               required
               style={{
                 width: "100%",
@@ -158,8 +156,8 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
                   if (adminOnly) {
                     onSelect("guest"); // Keep as guest if canceling admin login
                   } else {
-                    setShowEmailInput(false);
-                    setEmail("");
+                    setShowPasswordInput(false);
+                    setPassword("");
                   }
                 }}
                 style={{

@@ -18,7 +18,7 @@ export default function CreatePost() {
   const isDarkMode = localStorage.getItem('theme') === 'dark';
   const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
   const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#456882' : '#456882';
+  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
 
   const [formData, setFormData] = useState({
     title: "",

@@ -48,7 +48,8 @@ export default function Layout({ children, currentPageName }) {
 
   const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
   const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#456882' : '#456882';
+  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode for all text
+  const copyrightColor = isDarkMode ? '#456882' : '#456882'; // Darker color only for copyright
   const accentColor = isDarkMode ? '#456882' : '#456882';
   const shadowLight = isDarkMode ? '#2a5370' : '#ffffff';
   const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
@@ -142,7 +143,7 @@ export default function Layout({ children, currentPageName }) {
                         isActive(item.path) ? 'neumorphic-pressed' : ''
                       }`}
                       style={{ 
-                        color: isActive(item.path) ? textColor : subtleTextColor
+                        color: textColor
                       }}
                     >
                       {item.name}
@@ -247,7 +248,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="neumorphic-shadow rounded-2xl px-4 sm:px-6 py-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               {/* Copyright */}
-              <div style={{ color: subtleTextColor }} className="text-xs sm:text-sm text-center md:text-left">
+              <div style={{ color: copyrightColor }} className="text-xs sm:text-sm text-center md:text-left">
                 Copyright © 2025 | All rights reserved.
               </div>
 
@@ -261,7 +262,7 @@ export default function Layout({ children, currentPageName }) {
                     rel="noopener noreferrer"
                     className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
                     title={social.label}
-                    style={{ color: subtleTextColor }}
+                    style={{ color: textColor }}
                   >
                     {typeof social.icon === 'function' ? <social.icon /> : <social.icon className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </a>

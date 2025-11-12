@@ -11,7 +11,7 @@ export default function Home() {
 
   const isDarkMode = localStorage.getItem('theme') === 'dark';
   const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#456882' : '#456882';
+  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
 
   useEffect(() => {
     const loadUser = async () => {
@@ -65,7 +65,7 @@ export default function Home() {
                   filterPublished === filter ? 'neumorphic-pressed' : ''
                 }`}
                 style={{ 
-                  color: filterPublished === filter ? textColor : subtleTextColor
+                  color: textColor
                 }}
               >
                 {filter}
@@ -88,7 +88,7 @@ export default function Home() {
             }}
             className="neumorphic-inset rounded-xl p-2 neumorphic-hover"
           >
-            <X className="w-4 h-4" style={{ color: subtleTextColor }} />
+            <X className="w-4 h-4" style={{ color: textColor }} />
           </button>
         </div>
       )}
@@ -108,7 +108,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="neumorphic-shadow rounded-3xl p-12 text-center">
-          <p className="text-lg" style={{ color: subtleTextColor }}>
+          <p className="text-lg" style={{ color: textColor }}>
             {selectedTag 
               ? `No posts found with tag "${selectedTag}"` 
               : "No posts yet. Create your first one!"}

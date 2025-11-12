@@ -9,7 +9,7 @@ export default function Tags() {
   const navigate = useNavigate();
   const isDarkMode = localStorage.getItem('theme') === 'dark';
   const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#456882' : '#456882';
+  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
   
   const { data: posts, isLoading } = useQuery({
     queryKey: ['blogPosts'],

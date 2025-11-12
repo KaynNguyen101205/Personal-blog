@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { blogApi } from "@/api/blogApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { isAdmin } from "@/utils/auth";
-import { MessageCircle, Send, Trash2 } from "lucide-react";
+import { isAdmin, isGmailLoggedIn, getGmailEmail, logoutGmail } from "@/utils/auth";
+import { MessageCircle, Send, Trash2, LogOut } from "lucide-react";
 import { format } from "date-fns";
+import GmailLoginModal from "@/Components/GmailLoginModal";
 
 export default function CommentSection({ postId }) {
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");
+  const [showGmailLogin, setShowGmailLogin] = useState(false);
   const queryClient = useQueryClient();
 
   const isDarkMode = localStorage.getItem("theme") === "dark";
@@ -24,7 +26,7 @@ export default function CommentSection({ postId }) {
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: () => blogApi.addComment(postId, author.trim() || "Anonymous", content.trim()),
+    mutationFn: () => blogApi.addComment(postId, author.trim() || getGmailEmail() || "Anonymous", content.trim(), getGmailEmail()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       setContent("");
@@ -41,36 +43,83 @@ export default function CommentSection({ postId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isGmailLoggedIn()) {
+      setShowGmailLogin(true);
+      return;
+    }
     if (content.trim()) {
       addCommentMutation.mutate();
     }
   };
 
+  const handleGmailLoginSuccess = () => {
+    setShowGmailLogin(false);
+    setAuthor(getGmailEmail() || "");
+  };
+
   return (
     <div className="neumorphic-shadow rounded-3xl p-6 md:p-8 space-y-6" style={{ backgroundColor: bgColor }}>
-      <div className="flex items-center gap-2">
-        <MessageCircle className="w-6 h-6" style={{ color: textColor }} />
-        <h2 className="text-2xl font-bold" style={{ color: textColor }}>
-          Comments ({comments.length})
-        </h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-6 h-6" style={{ color: textColor }} />
+          <h2 className="text-2xl font-bold" style={{ color: textColor }}>
+            Comments ({comments.length})
+          </h2>
+        </div>
+        {isGmailLoggedIn() && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm" style={{ color: subtleTextColor }}>
+              {getGmailEmail()}
+            </span>
+            <button
+              onClick={() => {
+                logoutGmail();
+                setAuthor("");
+                queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+              }}
+              className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" style={{ color: subtleTextColor }} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Comment Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <input
-            type="text"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            placeholder="Your name (optional)"
-            className="w-full px-4 py-3 rounded-xl neumorphic-inset transition-all duration-300 focus:outline-none"
+      {!isGmailLoggedIn() && (
+        <div className="neumorphic-inset rounded-2xl p-4 text-center">
+          <p style={{ color: subtleTextColor, marginBottom: "1rem" }}>
+            Please login with your Gmail account to comment
+          </p>
+          <button
+            onClick={() => setShowGmailLogin(true)}
+            className="neumorphic-shadow rounded-xl px-6 py-3 neumorphic-hover"
             style={{
               backgroundColor: bgColor,
               color: textColor,
-              border: "none",
             }}
-          />
+          >
+            Login with Gmail
+          </button>
         </div>
+      )}
+      {isGmailLoggedIn() && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="text"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder={`Your name (logged in as ${getGmailEmail()})`}
+              className="w-full px-4 py-3 rounded-xl neumorphic-inset transition-all duration-300 focus:outline-none"
+              style={{
+                backgroundColor: bgColor,
+                color: textColor,
+                border: "none",
+              }}
+            />
+          </div>
         <div>
           <textarea
             value={content}
@@ -101,6 +150,15 @@ export default function CommentSection({ postId }) {
           </span>
         </button>
       </form>
+      )}
+
+      {/* Gmail Login Modal */}
+      {showGmailLogin && (
+        <GmailLoginModal
+          onSuccess={handleGmailLoginSuccess}
+          onCancel={() => setShowGmailLogin(false)}
+        />
+      )}
 
       {/* Comments List */}
       <div className="space-y-4 pt-4 border-t-2" style={{ borderColor }}>

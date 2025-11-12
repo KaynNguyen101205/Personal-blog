@@ -38,3 +38,40 @@ export const verifyAdminPassword = (password) => {
   return password === ADMIN_PASSWORD;
 };
 
+const GMAIL_AUTH_KEY = "gmailAuth";
+const GMAIL_EMAIL_KEY = "gmailEmail";
+
+export const isGmailLoggedIn = () => {
+  if (typeof window === "undefined") return false;
+  const gmailAuth = localStorage.getItem(GMAIL_AUTH_KEY);
+  const gmailEmail = localStorage.getItem(GMAIL_EMAIL_KEY);
+  return gmailAuth === "authenticated" && gmailEmail && isValidGmail(gmailEmail);
+};
+
+export const isValidGmail = (email) => {
+  if (!email) return false;
+  const emailLower = email.toLowerCase().trim();
+  return emailLower.endsWith("@gmail.com") || emailLower.endsWith("@googlemail.com");
+};
+
+export const loginWithGmail = (email) => {
+  if (typeof window === "undefined") return false;
+  if (isValidGmail(email)) {
+    localStorage.setItem(GMAIL_AUTH_KEY, "authenticated");
+    localStorage.setItem(GMAIL_EMAIL_KEY, email.trim().toLowerCase());
+    return true;
+  }
+  return false;
+};
+
+export const getGmailEmail = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(GMAIL_EMAIL_KEY);
+};
+
+export const logoutGmail = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(GMAIL_AUTH_KEY);
+  localStorage.removeItem(GMAIL_EMAIL_KEY);
+};
+

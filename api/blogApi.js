@@ -164,15 +164,19 @@ export const blogApi = {
 
   async createPost(data) {
     await delay();
+    console.log('createPost received data:', data);
+    console.log('createPost cover_image:', data.cover_image);
     const posts = readPosts();
     const id = data.id || nextId();
     const now = new Date().toISOString().split('T')[0];
     const newPost = {
       ...data,
       id,
+      cover_image: data.cover_image || '', // Explicitly include cover_image
       published_date: data.published ? data.published_date || now : data.published_date || now,
       reading_time: data.reading_time || computeReadingTime(data.content)
     };
+    console.log('Created post with cover_image:', newPost.cover_image);
     posts.push(newPost);
     writePosts(posts);
     return newPost;
@@ -180,17 +184,22 @@ export const blogApi = {
 
   async updatePost(id, data) {
     await delay();
+    console.log('updatePost received data:', data);
+    console.log('updatePost cover_image:', data.cover_image);
     const posts = readPosts();
     const index = posts.findIndex((post) => post.id === id);
     if (index === -1) {
       throw new Error('Post not found');
     }
+    console.log('Existing post cover_image:', posts[index].cover_image);
     const updatedPost = {
       ...posts[index],
       ...data,
       id,
+      cover_image: data.cover_image !== undefined ? data.cover_image : posts[index].cover_image, // Preserve if not provided
       reading_time: data.content ? computeReadingTime(data.content) : posts[index].reading_time
     };
+    console.log('Updated post with cover_image:', updatedPost.cover_image);
     posts[index] = updatedPost;
     writePosts(posts);
     return updatedPost;
@@ -220,14 +229,15 @@ export const blogApi = {
     });
   },
 
-  async addComment(postId, author, content) {
+  async addComment(postId, author, content, email) {
     await delay();
     const comments = readComments();
     const newComment = {
       id: nextCommentId(),
       postId,
-      author: author || 'Anonymous',
+      author: author || email || 'Anonymous',
       content,
+      email: email || null,
       createdAt: new Date().toISOString()
     };
     comments.push(newComment);

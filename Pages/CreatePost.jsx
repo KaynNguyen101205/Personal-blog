@@ -54,27 +54,40 @@ export default function CreatePost() {
 
   useEffect(() => {
     if (existingPost) {
-      setFormData(existingPost);
+      setFormData({
+        ...existingPost,
+        cover_image: existingPost.cover_image || '', // Ensure cover_image is set
+      });
     }
   }, [existingPost]);
 
   const createMutation = useMutation({
     mutationFn: (data) => blogApi.createPost(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['blogPosts']);
+    onSuccess: (result) => {
+      console.log('Post created successfully:', result);
+      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
       if (editId) {
-        queryClient.invalidateQueries(['blogPost', editId]);
+        queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
       }
       navigate(createPageUrl("Home"));
+    },
+    onError: (error) => {
+      console.error('Error creating post:', error);
+      alert('Failed to save post: ' + error.message);
     }
   });
 
   const updateMutation = useMutation({
     mutationFn: (data) => blogApi.updatePost(editId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['blogPosts']);
-      queryClient.invalidateQueries(['blogPost', editId]);
+    onSuccess: (result) => {
+      console.log('Post updated successfully:', result);
+      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
+      queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
       navigate(createPageUrl("Home"));
+    },
+    onError: (error) => {
+      console.error('Error updating post:', error);
+      alert('Failed to update post: ' + error.message);
     }
   });
 
@@ -90,11 +103,16 @@ export default function CreatePost() {
   });
 
   const handleSubmit = (published) => {
+    console.log('Current formData before submit:', formData);
     const dataToSave = {
       ...formData,
       published,
+      cover_image: formData.cover_image || '', // Explicitly include cover_image
       reading_time: Math.ceil(formData.content.split(' ').length / 200)
     };
+
+    console.log('Saving post with data:', dataToSave);
+    console.log('Cover image URL:', dataToSave.cover_image);
 
     if (editId) {
       updateMutation.mutate(dataToSave);
@@ -108,9 +126,22 @@ export default function CreatePost() {
     if (!file) return;
 
     setUploading(true);
-    const { file_url } = await blogApi.uploadImage(file);
-    setFormData({ ...formData, cover_image: file_url });
-    setUploading(false);
+    try {
+      const result = await blogApi.uploadImage(file);
+      console.log('Image upload result:', result);
+      const file_url = result.file_url || result;
+      console.log('Setting cover_image to:', file_url);
+      setFormData(prev => {
+        const updated = { ...prev, cover_image: file_url };
+        console.log('Updated formData:', updated);
+        return updated;
+      });
+    } catch (error) {
+      console.error('Image upload error:', error);
+      alert('Failed to upload image: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleAddTag = () => {
@@ -187,13 +218,28 @@ export default function CreatePost() {
           </label>
           
           {formData.cover_image && (
-            <div className="neumorphic-inset rounded-2xl p-4">
+            <div className="neumorphic-inset rounded-2xl p-4 relative">
               <img
                 src={formData.cover_image}
                 alt="Cover"
                 className="w-full h-48 object-cover rounded-xl"
                 style={{ filter: 'saturate(0.8) contrast(0.9)' }}
+                onError={(e) => {
+                  console.error('Image failed to load:', formData.cover_image);
+                  e.target.style.display = 'none';
+                }}
               />
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('Removing cover image');
+                  setFormData({ ...formData, cover_image: '' });
+                }}
+                className="absolute top-2 right-2 neumorphic-shadow rounded-lg p-2 neumorphic-hover"
+                title="Remove cover image"
+              >
+                <Trash2 className="w-4 h-4" style={{ color: '#c66' }} />
+              </button>
             </div>
           )}
           
@@ -203,11 +249,12 @@ export default function CreatePost() {
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
+              key={formData.cover_image} // Reset input when image changes
             />
             <div className="neumorphic-shadow rounded-2xl p-4 cursor-pointer neumorphic-hover text-center">
               <Upload className="w-6 h-6 mx-auto mb-2" style={{ color: subtleTextColor }} />
               <span style={{ color: subtleTextColor }}>
-                {uploading ? "Uploading..." : "Upload Cover Image"}
+                {uploading ? "Uploading..." : formData.cover_image ? "Change Cover Image" : "Upload Cover Image"}
               </span>
             </div>
           </label>

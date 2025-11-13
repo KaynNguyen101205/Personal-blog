@@ -5,3 +5,8 @@
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "VITE_ADMIN_PASSWORD"
   SECRETS_SCAN_OMIT_PATHS = "dist/**"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

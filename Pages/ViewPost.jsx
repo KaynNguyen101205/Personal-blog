@@ -48,7 +48,7 @@ export default function ViewPost() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate(createPageUrl("Home"))}
+          onClick={() => navigate(createPageUrl("Posts"))}
           className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover"
         >
           <ArrowLeft className="w-5 h-5" style={{ color: subtleTextColor }} />

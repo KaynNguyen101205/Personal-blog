@@ -30,7 +30,7 @@ export default function Tags() {
   const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
 
   const handleTagClick = (tag) => {
-    navigate(`${createPageUrl("Home")}?tag=${encodeURIComponent(tag)}`);
+    navigate(`${createPageUrl("Posts")}?tag=${encodeURIComponent(tag)}`);
   };
 
   return (

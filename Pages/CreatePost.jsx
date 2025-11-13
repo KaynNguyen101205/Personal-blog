@@ -38,7 +38,7 @@ export default function CreatePost() {
   useEffect(() => {
     // Only admin can access this page
     if (!isAdmin()) {
-      navigate(createPageUrl("Home"));
+      navigate(createPageUrl("Posts"));
       return;
     }
     setLoading(false);
@@ -70,7 +70,7 @@ export default function CreatePost() {
       if (editId) {
         queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
       }
-      navigate(createPageUrl("Home"));
+      navigate(createPageUrl("Posts"));
     },
     onError: (error) => {
       console.error('Error creating post:', error);
@@ -84,7 +84,7 @@ export default function CreatePost() {
       console.log('Post updated successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
       queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
-      navigate(createPageUrl("Home"));
+      navigate(createPageUrl("Posts"));
     },
     onError: (error) => {
       console.error('Error updating post:', error);
@@ -99,7 +99,7 @@ export default function CreatePost() {
       if (editId) {
         queryClient.invalidateQueries(['blogPost', editId]);
       }
-      navigate(createPageUrl("Home"));
+      navigate(createPageUrl("Posts"));
     }
   });
 

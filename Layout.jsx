@@ -38,7 +38,7 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = () => {
     logout();
     setUserMode(null);
-    navigate(createPageUrl("Home"));
+        navigate(createPageUrl("Posts"));
     window.location.reload(); // Reload to show auth modal again
   };
 
@@ -61,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
   const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
 
   const navItems = [
-    { name: "Posts", path: createPageUrl("Home") },
+    { name: "Posts", path: createPageUrl("Posts") },
     { name: "Tags", path: createPageUrl("Tags") },
     { name: "About", path: createPageUrl("About") }
   ];

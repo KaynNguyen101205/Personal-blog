@@ -1,5 +1,6 @@
 const PAGE_ROUTES = {
   Home: '/',
+  Posts: '/posts',
   Tags: '/tags',
   About: '/about',
   Archive: '/archive',

@@ -1,38 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { blogApi } from "@/api/blogApi";
 import { useQuery } from "@tanstack/react-query";
-import BlogPostCard from "@/Components/blog/BlogPostCard";
+import { createPageUrl } from "@/utils";
 import { isAdmin } from "@/utils/auth";
-import { X } from "lucide-react";
+import { Calendar, ArrowRight, Github, Facebook, Instagram, Linkedin, Mail } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Home() {
-  const [filterPublished, setFilterPublished] = useState("all");
-  const [selectedTag, setSelectedTag] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Update theme state when it changes
   useEffect(() => {
     const checkTheme = () => {
       setIsDarkMode(localStorage.getItem('theme') === 'dark');
     };
-    
     checkTheme();
-    
-    // Listen for theme changes
-    const handleStorageChange = () => {
-      checkTheme();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically in case theme changes in same window
     const interval = setInterval(checkTheme, 100);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
@@ -40,145 +25,147 @@ export default function Home() {
   const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
   const shadowLight = isDarkMode ? '#2a5370' : '#ffffff';
   const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
+  const borderColor = isDarkMode ? '#2a5370' : '#D2C1B6';
 
-  useEffect(() => {
-    // Check for tag in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tagParam = urlParams.get('tag');
-    if (tagParam) {
-      setSelectedTag(tagParam);
-    }
-    
-    // Load search query from localStorage
-    const savedQuery = localStorage.getItem('blog_search_query');
-    if (savedQuery) {
-      setSearchQuery(savedQuery);
-    }
-    
-    // Listen for search query changes
-    const handleSearchUpdate = () => {
-      const query = localStorage.getItem('blog_search_query') || '';
-      setSearchQuery(query);
-    };
-    
-    // Listen for both storage events (cross-tab) and custom events (same tab)
-    window.addEventListener('storage', handleSearchUpdate);
-    window.addEventListener('blogSearchUpdate', handleSearchUpdate);
-    
-    return () => {
-      window.removeEventListener('storage', handleSearchUpdate);
-      window.removeEventListener('blogSearchUpdate', handleSearchUpdate);
-    };
-  }, []);
-
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts = [] } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: () => blogApi.listPosts('-published_date'),
     initialData: [],
   });
 
-  const filteredPosts = posts.filter(post => {
-    // Only show published posts to non-admin users
+  // Get posts using the same filtering logic as Posts page (when filter is "all" and no search/tag filters)
+  const availablePosts = posts.filter(post => {
+    // Only show published posts to non-admin users (same as Posts page)
     if (!isAdmin() && !post.published) return false;
-    
-    const matchesFilter = filterPublished === "all" || 
-                         (filterPublished === "published" && post.published) ||
-                         (filterPublished === "draft" && !post.published);
-    
-    const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
-    
-    // Search filter - search only in title
-    const matchesSearch = !searchQuery || (() => {
-      const query = searchQuery.toLowerCase();
-      return post.title && post.title.toLowerCase().includes(query);
-    })();
-    
-    return matchesFilter && matchesTag && matchesSearch;
+    // For "all" filter, show all published posts (non-admin) or all posts (admin)
+    return isAdmin() ? true : post.published;
   });
+  const featuredPosts = availablePosts.slice(0, 3);
 
-  // Filter options - only show draft for admin, no "published" for clients
-  const filterOptions = isAdmin() ? ["all", "draft"] : ["all"];
+  const socialLinks = [
+    { icon: Github, url: "https://github.com/KaynNguyen101205", label: "GitHub" },
+    { icon: Facebook, url: "https://www.facebook.com/itisnamkhanh/", label: "Facebook" },
+    { icon: Instagram, url: "https://www.instagram.com/capheout/", label: "Instagram" },
+    { icon: Linkedin, url: "https://www.linkedin.com/in/nam-khanh-kayane-nguyen-789902271/", label: "LinkedIn" },
+    { icon: Mail, url: "mailto:nguyenkayn5@gmail.com", label: "Email" },
+    { 
+      icon: () => (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      ), 
+      url: "https://x.com/Iamnamkhanh", 
+      label: "X" 
+    }
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Filter Section */}
-      <div 
-        className="neumorphic-shadow rounded-3xl p-6"
-        style={{
-          backgroundColor: bgColor,
-          boxShadow: `8px 8px 16px ${shadowDark}, -8px -8px 16px ${shadowLight}`
-        }}
-      >
-        <div 
-          className="flex gap-2 neumorphic-inset rounded-2xl p-2"
-          style={{
-            backgroundColor: bgColor,
-            boxShadow: `inset 6px 6px 12px ${shadowDark}, inset -6px -6px 12px ${shadowLight}`
-          }}
-        >
-          {filterOptions.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setFilterPublished(filter)}
-              className={`px-4 py-2 rounded-xl transition-all duration-300 capitalize font-medium text-sm ${
-                filterPublished === filter ? 'neumorphic-pressed' : ''
-              }`}
-              style={{ 
-                color: textColor,
-                backgroundColor: filterPublished === filter ? bgColor : 'transparent',
-                boxShadow: filterPublished === filter 
-                  ? `inset 4px 4px 8px ${shadowDark}, inset -4px -4px 8px ${shadowLight}`
-                  : 'none'
-              }}
-            >
-              {filter}
-            </button>
-          ))}
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Welcome Section */}
+      <div className="space-y-6">
+        <h1 className="text-4xl md:text-5xl font-bold" style={{ color: textColor }}>
+          Welcome to Kayane Blog
+        </h1>
+        
+        <div className="space-y-4" style={{ color: textColor }}>
+          <p className="text-lg leading-relaxed">
+            Welcome to my blog! I'm Nam Khanh Nguyen, but most people call me Kayane or Kayn. 
+            I'm a Computer Science undergraduate at the University of Illinois Chicago, and I work as a DevOps/Platform/Cloud engineer.
+          </p>
+          <p className="text-lg leading-relaxed">
+            This blog is where I document what I'm learning in DevOps, SRE, and life. 
+            I write about technology, programming, cloud computing, automation, and other things I find interesting. 
+            However, most of the content will be about technology, programming, and DevOps/Platform development.
+          </p>
+          <p className="text-lg leading-relaxed">
+            I hope you enjoy reading my blog and find it helpful!
+          </p>
+        </div>
+
+        {/* Social Links */}
+        <div className="space-y-2">
+          <p className="font-semibold" style={{ color: textColor }}>Social Links:</p>
+          <div className="flex flex-wrap gap-3">
+            {socialLinks.map((social, index) => (
+              <a
+                key={index}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
+                title={social.label}
+                style={{ color: subtleTextColor }}
+              >
+                {typeof social.icon === 'function' ? <social.icon /> : <social.icon className="w-5 h-5" />}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Selected Tag Display */}
-      {selectedTag && (
-        <div className="neumorphic-shadow rounded-2xl p-4 flex items-center justify-between">
-          <span style={{ color: textColor }}>
-            Showing posts tagged with: <strong>{selectedTag}</strong>
-          </span>
+      {/* Separator */}
+      <div className="h-px" style={{ backgroundColor: borderColor }} />
+
+      {/* Featured Posts Section */}
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold" style={{ color: textColor }}>
+          Featured
+        </h2>
+        
+        {featuredPosts.length > 0 ? (
+          <div className="space-y-6">
+            {featuredPosts.map((post) => (
+              <div
+                key={post.id}
+                onClick={() => navigate(`${createPageUrl("ViewPost")}?id=${post.id}`)}
+                className="neumorphic-shadow rounded-2xl p-6 cursor-pointer neumorphic-hover transition-all duration-300"
+                style={{ backgroundColor: bgColor }}
+              >
+                <h3 
+                  className="text-xl font-bold mb-2 hover:opacity-80 transition-opacity"
+                  style={{ color: textColor }}
+                >
+                  {post.title}
+                </h3>
+                
+                {post.published_date && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="w-4 h-4" style={{ color: subtleTextColor }} />
+                    <span className="text-sm" style={{ color: subtleTextColor }}>
+                      {format(new Date(post.published_date), "MMM d, yyyy 'at' h:mm a")}
+                    </span>
+                  </div>
+                )}
+                
+                {post.excerpt && (
+                  <p className="leading-relaxed" style={{ color: subtleTextColor }}>
+                    {post.excerpt}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="neumorphic-shadow rounded-2xl p-8 text-center">
+            <p style={{ color: subtleTextColor }}>No featured posts yet.</p>
+          </div>
+        )}
+
+        {/* All Posts Link */}
+        <div className="text-center pt-4">
           <button
-            onClick={() => {
-              setSelectedTag(null);
-              window.history.pushState({}, '', window.location.pathname);
+            onClick={() => navigate(createPageUrl("Posts"))}
+            className="neumorphic-shadow rounded-xl px-6 py-3 neumorphic-hover inline-flex items-center gap-2"
+            style={{
+              backgroundColor: bgColor,
+              color: textColor,
             }}
-            className="neumorphic-inset rounded-xl p-2 neumorphic-hover"
           >
-            <X className="w-4 h-4" style={{ color: textColor }} />
+            <span className="font-medium">All Posts</span>
+            <ArrowRight className="w-5 h-5" />
           </button>
         </div>
-      )}
-
-      {/* Posts Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="neumorphic-shadow rounded-3xl h-96 animate-pulse" />
-          ))}
-        </div>
-      ) : filteredPosts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPosts.map((post) => (
-            <BlogPostCard key={post.id} post={post} />
-          ))}
-        </div>
-      ) : (
-        <div className="neumorphic-shadow rounded-3xl p-12 text-center">
-          <p className="text-lg" style={{ color: textColor }}>
-            {searchQuery
-              ? `No posts found matching "${searchQuery}"`
-              : selectedTag 
-                ? `No posts found with tag "${selectedTag}"` 
-                : "No posts yet. Create your first one!"}
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

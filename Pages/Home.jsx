@@ -87,15 +87,10 @@ export default function Home() {
     
     const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
     
-    // Search filter - search in title, excerpt, content, and tags
+    // Search filter - search only in title
     const matchesSearch = !searchQuery || (() => {
       const query = searchQuery.toLowerCase();
-      return (
-        (post.title && post.title.toLowerCase().includes(query)) ||
-        (post.excerpt && post.excerpt.toLowerCase().includes(query)) ||
-        (post.content && post.content.toLowerCase().includes(query)) ||
-        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query)))
-      );
+      return post.title && post.title.toLowerCase().includes(query);
     })();
     
     return matchesFilter && matchesTag && matchesSearch;

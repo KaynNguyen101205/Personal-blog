@@ -98,22 +98,51 @@ export default function Posts() {
       matchesFilter = post.published; // Only published
     }
     
+    if (!matchesFilter) return false;
+    
     const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
+    if (!matchesTag) return false;
     
     // Search filter - search only in title
     const matchesSearch = !searchQuery || (() => {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase().trim();
+      if (!query) return true;
       return post.title && post.title.toLowerCase().includes(query);
     })();
     
-    return matchesFilter && matchesTag && matchesSearch;
+    return matchesSearch;
   });
 
   // Filter options - only show draft for admin, no "published" for clients
   const filterOptions = isAdmin() ? ["all", "draft"] : ["all"];
 
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery.trim() || selectedTag;
+
   return (
     <div className="space-y-8">
+      {/* Active Filters Indicator */}
+      {hasActiveFilters && (
+        <div className="neumorphic-inset rounded-2xl p-4 flex items-center justify-between">
+          <span style={{ color: textColor }}>
+            Filters active: {searchQuery.trim() && `Search: "${searchQuery.trim()}"`} {searchQuery.trim() && selectedTag && ' • '} {selectedTag && `Tag: ${selectedTag}`}
+          </span>
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedTag(null);
+              localStorage.removeItem('blog_search_query');
+              window.history.pushState({}, '', window.location.pathname);
+              window.dispatchEvent(new Event('blogSearchUpdate'));
+            }}
+            className="neumorphic-shadow rounded-xl px-4 py-2 neumorphic-hover text-sm"
+            style={{ color: textColor }}
+          >
+            Clear Filters
+          </button>
+        </div>
+      )}
+
       {/* Filter Section */}
       <div 
         className="neumorphic-shadow rounded-3xl p-6"

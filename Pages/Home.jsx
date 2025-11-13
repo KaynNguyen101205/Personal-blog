@@ -33,14 +33,24 @@ export default function Home() {
     initialData: [],
   });
 
-  // Get posts using the same filtering logic as Posts page (when filter is "all" and no search/tag filters)
+  // Get posts using EXACTLY the same filtering logic as Posts page when filter is "all"
+  // This ensures featured posts match what appears in Posts page
   const availablePosts = posts.filter(post => {
     // Only show published posts to non-admin users (same as Posts page)
     if (!isAdmin() && !post.published) return false;
     // For "all" filter, show all published posts (non-admin) or all posts (admin)
-    return isAdmin() ? true : post.published;
+    // This matches Posts.jsx filter logic when filterPublished === "all"
+    return true; // matchesFilter would be true for "all"
   });
-  const featuredPosts = availablePosts.slice(0, 3);
+  
+  // Sort by published_date (newest first) and take the 3 most recent
+  const featuredPosts = [...availablePosts]
+    .sort((a, b) => {
+      const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
+      const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
+      return dateB - dateA; // Newest first
+    })
+    .slice(0, 3);
 
   const socialLinks = [
     { icon: Github, url: "https://github.com/KaynNguyen101205", label: "GitHub" },

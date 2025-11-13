@@ -6,8 +6,9 @@ import { isAdmin } from "@/utils/auth";
 import { X } from "lucide-react";
 
 export default function Home() {
-  const [filterPublished, setFilterPublished] = useState("published");
+  const [filterPublished, setFilterPublished] = useState("all");
   const [selectedTag, setSelectedTag] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Update theme state when it changes
@@ -47,6 +48,27 @@ export default function Home() {
     if (tagParam) {
       setSelectedTag(tagParam);
     }
+    
+    // Load search query from localStorage
+    const savedQuery = localStorage.getItem('blog_search_query');
+    if (savedQuery) {
+      setSearchQuery(savedQuery);
+    }
+    
+    // Listen for search query changes
+    const handleSearchUpdate = () => {
+      const query = localStorage.getItem('blog_search_query') || '';
+      setSearchQuery(query);
+    };
+    
+    // Listen for both storage events (cross-tab) and custom events (same tab)
+    window.addEventListener('storage', handleSearchUpdate);
+    window.addEventListener('blogSearchUpdate', handleSearchUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', handleSearchUpdate);
+      window.removeEventListener('blogSearchUpdate', handleSearchUpdate);
+    };
   }, []);
 
   const { data: posts, isLoading } = useQuery({
@@ -65,11 +87,22 @@ export default function Home() {
     
     const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
     
-    return matchesFilter && matchesTag;
+    // Search filter - search in title, excerpt, content, and tags
+    const matchesSearch = !searchQuery || (() => {
+      const query = searchQuery.toLowerCase();
+      return (
+        (post.title && post.title.toLowerCase().includes(query)) ||
+        (post.excerpt && post.excerpt.toLowerCase().includes(query)) ||
+        (post.content && post.content.toLowerCase().includes(query)) ||
+        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query)))
+      );
+    })();
+    
+    return matchesFilter && matchesTag && matchesSearch;
   });
 
-  // Filter options - only show draft for admin
-  const filterOptions = isAdmin() ? ["all", "published", "draft"] : ["all", "published"];
+  // Filter options - only show draft for admin, no "published" for clients
+  const filterOptions = isAdmin() ? ["all", "draft"] : ["all"];
 
   return (
     <div className="space-y-8">
@@ -143,9 +176,11 @@ export default function Home() {
       ) : (
         <div className="neumorphic-shadow rounded-3xl p-12 text-center">
           <p className="text-lg" style={{ color: textColor }}>
-            {selectedTag 
-              ? `No posts found with tag "${selectedTag}"` 
-              : "No posts yet. Create your first one!"}
+            {searchQuery
+              ? `No posts found matching "${searchQuery}"`
+              : selectedTag 
+                ? `No posts found with tag "${selectedTag}"` 
+                : "No posts yet. Create your first one!"}
           </p>
         </div>
       )}

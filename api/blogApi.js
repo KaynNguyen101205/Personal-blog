@@ -91,7 +91,22 @@ const readPosts = () => {
 
 const writePosts = (posts) => {
   if (!isBrowser) return;
-  window.localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+  try {
+    const jsonData = JSON.stringify(posts);
+    const sizeInMB = new Blob([jsonData]).size / (1024 * 1024);
+    
+    if (sizeInMB > 4) {
+      console.warn(`Warning: Posts data is ${sizeInMB.toFixed(2)}MB. localStorage quota is ~5-10MB.`);
+    }
+    
+    window.localStorage.setItem(POSTS_STORAGE_KEY, jsonData);
+  } catch (error) {
+    if (error.name === 'QuotaExceededError') {
+      console.error('localStorage quota exceeded. Consider removing old posts or images.');
+      throw new Error('Storage quota exceeded. Please remove some old posts or images, or use smaller images.');
+    }
+    throw error;
+  }
 };
 
 const readUser = () => {
@@ -126,13 +141,78 @@ const sortPosts = (posts, order) => {
   return [...posts];
 };
 
-const readFileAsDataUrl = (file) =>
+// Compress image to reduce file size for localStorage
+const compressImage = (file, maxWidth = 1200, maxHeight = 800, quality = 0.7) =>
   new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate new dimensions
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to blob with compression
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error('Failed to compress image'));
+              reader.readAsDataURL(blob);
+            } else {
+              reject(new Error('Failed to compress image'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+
+const readFileAsDataUrl = async (file) => {
+  // Compress images larger than 500KB
+  if (file.size > 500 * 1024 && file.type.startsWith('image/')) {
+    try {
+      return await compressImage(file);
+    } catch (error) {
+      console.warn('Image compression failed, using original:', error);
+      // Fallback to original if compression fails
+    }
+  }
+  
+  // For small files or non-images, use original
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
+};
 
 const readComments = () => {
   if (!isBrowser) return [];

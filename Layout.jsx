@@ -10,11 +10,17 @@ export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [userMode, setUserMode] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     setUserMode(getUserMode());
+    // Load search query from localStorage
+    const savedQuery = localStorage.getItem('blog_search_query');
+    if (savedQuery) {
+      setSearchQuery(savedQuery);
+    }
   }, [location]);
 
   useEffect(() => {
@@ -218,6 +224,13 @@ export default function Layout({ children, currentPageName }) {
                 <input
                   type="text"
                   placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    localStorage.setItem('blog_search_query', e.target.value);
+                    // Trigger search update in Home component
+                    window.dispatchEvent(new Event('blogSearchUpdate'));
+                  }}
                   autoFocus
                   className="w-full px-4 py-3 rounded-xl neumorphic-inset transition-all duration-300 focus:outline-none font-medium"
                   style={{
@@ -226,7 +239,12 @@ export default function Layout({ children, currentPageName }) {
                     border: 'none'
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Escape') setIsSearchOpen(false);
+                    if (e.key === 'Escape') {
+                      setIsSearchOpen(false);
+                      setSearchQuery("");
+                      localStorage.removeItem('blog_search_query');
+                      window.dispatchEvent(new Event('blogSearchUpdate'));
+                    }
                   }}
                 />
               </div>

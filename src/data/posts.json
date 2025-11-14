@@ -1,0 +1,25 @@
+[
+  {
+    "id": "welcome-to-my-blog",
+    "title": "Welcome to my personal blog",
+    "excerpt": "Thanks for stopping by! This space is where I share DevOps lessons, side projects, and things that make me curious.",
+    "content": "## Hello there \n\nI set up this little corner of the web to track my learning and experiments.\n\n- DevOps tips and hard lessons\n- Cloud things that made me go “oh wow”\n- Personal notes so future me remembers what current me figured out\n\nIf any of that sounds interesting, feel free to hang around.",
+    "cover_image": "",
+    "published": true,
+    "published_date": "2025-01-10",
+    "reading_time": 3,
+    "tags": ["welcome", "devops"]
+  },
+  {
+    "id": "capturing-ideas-quickly",
+    "title": "Capturing ideas quickly so they do not drift away",
+    "excerpt": "I keep a lightweight workflow that mixes GoodNotes, VS Code, and tiny scripts to move ideas into action.",
+    "content": "### Why I care\n\nIdeas vanish fast. A friendly system helps me record them without overthinking.\n\n### My simple workflow\n\n1. Brain dump into GoodNotes on the iPad.\n2. Promote the solid ideas into a Markdown inbox.\n3. Schedule a small review session each Friday.\n\nIt is not perfect, but it keeps momentum without a lot of overhead.",
+    "cover_image": "",
+    "published": true,
+    "published_date": "2025-02-02",
+    "reading_time": 4,
+    "tags": ["productivity", "notes"]
+  }
+]
+

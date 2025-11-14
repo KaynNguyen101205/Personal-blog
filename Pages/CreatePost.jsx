@@ -7,7 +7,7 @@ import { isAdmin } from "@/utils/auth";
 import { getStorageSize } from "@/utils/storageCleanup";
 import NeumorphicInput from "@/Components/blog/NeumorphicInput";
 import NeumorphicButton from "@/Components/blog/NeumorphicButton";
-import { Save, Eye, Upload, ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
+import { Save, Eye, Upload, ArrowLeft, Trash2, AlertTriangle, Download } from "lucide-react";
 
 export default function CreatePost() {
   const navigate = useNavigate();
@@ -64,12 +64,14 @@ export default function CreatePost() {
 
   const createMutation = useMutation({
     mutationFn: (data) => blogApi.createPost(data),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       console.log('Post created successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
       if (editId) {
         queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
       }
+      await blogApi.exportPostsToFile();
+      alert('posts.json downloaded. Please replace src/data/posts.json and commit so the update stays after redeploy.');
       navigate(createPageUrl("Posts"));
     },
     onError: (error) => {
@@ -80,10 +82,12 @@ export default function CreatePost() {
 
   const updateMutation = useMutation({
     mutationFn: (data) => blogApi.updatePost(editId, data),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       console.log('Post updated successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
       queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
+      await blogApi.exportPostsToFile();
+      alert('posts.json downloaded. Please replace src/data/posts.json and commit so the update stays after redeploy.');
       navigate(createPageUrl("Posts"));
     },
     onError: (error) => {
@@ -200,15 +204,28 @@ export default function CreatePost() {
           {editId ? 'Edit Post' : 'Create New Post'}
         </h1>
         
-        {editId && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => deleteMutation.mutate()}
-            className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover"
-            disabled={deleteMutation.isPending}
+            onClick={async () => {
+              await blogApi.exportPostsToFile();
+              alert('posts.json downloaded. Replace src/data/posts.json and commit so the update stays after redeploy.');
+            }}
+            className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover flex items-center gap-2"
           >
-            <Trash2 className="w-5 h-5" style={{ color: '#c66' }} />
+            <Download className="w-5 h-5" style={{ color: subtleTextColor }} />
+            <span style={{ color: subtleTextColor }}>Download posts.json</span>
           </button>
-        )}
+
+          {editId && (
+            <button
+              onClick={() => deleteMutation.mutate()}
+              className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover"
+              disabled={deleteMutation.isPending}
+            >
+              <Trash2 className="w-5 h-5" style={{ color: '#c66' }} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="neumorphic-shadow rounded-3xl p-8 space-y-6">

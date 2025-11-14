@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { blogApi } from "@/api/blogApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { isAdmin, isGmailLoggedIn, getGmailEmail, logoutGmail } from "@/utils/auth";
-import { MessageCircle, Send, Trash2, LogOut } from "lucide-react";
+import { isAdmin, isGmailLoggedIn, getGmailEmail, logoutGmail, onGmailAuthStateChange } from "@/utils/auth";
+import { MessageCircle, Send, Trash2, LogOut, Download } from "lucide-react";
 import { format } from "date-fns";
 import GmailLoginModal from "@/Components/GmailLoginModal";
 
@@ -10,6 +10,7 @@ export default function CommentSection({ postId }) {
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");
   const [showGmailLogin, setShowGmailLogin] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState(() => getGmailEmail() || "");
   const queryClient = useQueryClient();
 
   const isDarkMode = localStorage.getItem("theme") === "dark";
@@ -20,17 +21,39 @@ export default function CommentSection({ postId }) {
   const shadowDark = isDarkMode ? "#0d1f2a" : "#d9cec4";
   const borderColor = isDarkMode ? "#2a5370" : "#D2C1B6";
 
+  useEffect(() => {
+    setCurrentEmail(getGmailEmail() || "");
+    const unsubscribe = onGmailAuthStateChange((user) => {
+      setCurrentEmail(user?.email || getGmailEmail() || "");
+    });
+    return unsubscribe;
+  }, []);
+
+  const isLoggedIn = isGmailLoggedIn();
+  const effectiveEmail = currentEmail || getGmailEmail() || "";
+  const normalizedEmail = effectiveEmail ? effectiveEmail.toLowerCase() : "";
+  const canDeleteComment = (commentEmail = "") => {
+    const normalizedCommentEmail = commentEmail.toLowerCase();
+    if (isAdmin()) {
+      return true;
+    }
+    if (!normalizedEmail) {
+      return false;
+    }
+    return normalizedCommentEmail === normalizedEmail;
+  };
+
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", postId],
     queryFn: () => blogApi.getComments(postId),
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: () => blogApi.addComment(postId, author.trim() || getGmailEmail() || "Anonymous", content.trim(), getGmailEmail()),
+    mutationFn: () => blogApi.addComment(postId, author.trim() || effectiveEmail || "Anonymous", content.trim(), effectiveEmail),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       setContent("");
-      setAuthor("");
+      setAuthor(effectiveEmail || "");
     },
   });
 
@@ -43,7 +66,7 @@ export default function CommentSection({ postId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!isGmailLoggedIn()) {
+    if (!isLoggedIn) {
       setShowGmailLogin(true);
       return;
     }
@@ -54,8 +77,16 @@ export default function CommentSection({ postId }) {
 
   const handleGmailLoginSuccess = () => {
     setShowGmailLogin(false);
-    setAuthor(getGmailEmail() || "");
+    const email = getGmailEmail() || "";
+    setAuthor(email);
+    setCurrentEmail(email);
   };
+
+  useEffect(() => {
+    if (isLoggedIn && !author) {
+      setAuthor(effectiveEmail || "");
+    }
+  }, [isLoggedIn, effectiveEmail, author]);
 
   return (
     <div className="neumorphic-shadow rounded-3xl p-6 md:p-8 space-y-6" style={{ backgroundColor: bgColor }}>
@@ -66,28 +97,44 @@ export default function CommentSection({ postId }) {
             Comments ({comments.length})
           </h2>
         </div>
-        {isGmailLoggedIn() && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm" style={{ color: subtleTextColor }}>
-              {getGmailEmail()}
-            </span>
+        <div className="flex items-center gap-2">
+          {isAdmin() && (
             <button
-              onClick={() => {
-                logoutGmail();
-                setAuthor("");
-                queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+              onClick={async () => {
+                await blogApi.exportCommentsToFile();
+                alert("comments.json downloaded. Replace src/data/comments.json and commit so comments stay after redeploy.");
               }}
               className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
-              title="Logout"
+              title="Download comments data"
             >
-              <LogOut className="w-4 h-4" style={{ color: subtleTextColor }} />
+              <Download className="w-4 h-4" style={{ color: subtleTextColor }} />
             </button>
-          </div>
-        )}
+          )}
+        {isLoggedIn && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm" style={{ color: subtleTextColor }}>
+              {effectiveEmail}
+              </span>
+              <button
+                onClick={() => {
+                logoutGmail().finally(() => {
+                  setAuthor("");
+                  setCurrentEmail("");
+                });
+                  queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+                }}
+                className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" style={{ color: subtleTextColor }} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Comment Form */}
-      {!isGmailLoggedIn() && (
+      {!isLoggedIn && (
         <div className="neumorphic-inset rounded-2xl p-4 text-center">
           <p style={{ color: subtleTextColor, marginBottom: "1rem" }}>
             Please login with your Gmail account to comment
@@ -104,14 +151,14 @@ export default function CommentSection({ postId }) {
           </button>
         </div>
       )}
-      {isGmailLoggedIn() && (
+      {isLoggedIn && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
               type="text"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              placeholder={`Your name (logged in as ${getGmailEmail()})`}
+              placeholder={`Your name (logged in as ${effectiveEmail})`}
               className="w-full px-4 py-3 rounded-xl neumorphic-inset transition-all duration-300 focus:outline-none"
               style={{
                 backgroundColor: bgColor,
@@ -191,7 +238,7 @@ export default function CommentSection({ postId }) {
                     {comment.content}
                   </p>
                 </div>
-                {isAdmin() && (
+                {canDeleteComment(comment.email || "") && (
                   <button
                     onClick={() => {
                       if (window.confirm("Are you sure you want to delete this comment?")) {

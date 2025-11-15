@@ -1,10 +1,13 @@
 import React from "react";
 import { Github, Facebook, Instagram, Linkedin, Mail } from "lucide-react";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function About() {
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
+  const { palette } = useTheme();
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const surfaceColor = palette.surfaceBackground;
+  const chipColor = palette.chipBackground;
 
   const socialLinks = [
   { icon: Github, url: "https://github.com/KaynNguyen101205", label: "GitHub", username: "@KaynNguyen101205" },
@@ -63,7 +66,10 @@ export default function About() {
       </h1>
 
       {/* Profile Section */}
-      <div className="neumorphic-shadow rounded-3xl p-8 md:p-12">
+      <div
+        className="neumorphic-shadow rounded-3xl p-8 md:p-12"
+        style={{ backgroundColor: surfaceColor }}
+      >
         <div className="flex flex-col space-y-6">
           {/* Lotus Image */}
           <div className="w-full flex justify-center mb-6">
@@ -77,7 +83,7 @@ export default function About() {
 
           {/* Bio */}
           <div className="w-full text-left">
-            <div className="space-y-4" style={{ color: isDarkMode ? '#D2C1B6' : '#000000' }}>
+            <div className="space-y-4" style={{ color: textColor }}>
               <p className="leading-relaxed">
                 Hi, I'm Nam Khanh Nguyen, but most people call me Kayane or Kayn.
                 I'm a Computer Science undergraduate at the University of Illinois Chicago. My days are split between designing scalable cloud architectures and writing code that bridges systems, people, and ideas.
@@ -100,7 +106,10 @@ export default function About() {
       </div>
 
       {/* Skills Section */}
-      <div className="neumorphic-shadow rounded-3xl p-8">
+      <div
+        className="neumorphic-shadow rounded-3xl p-8"
+        style={{ backgroundColor: surfaceColor }}
+      >
         <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: textColor }}>
           Skills
         </h2>
@@ -111,7 +120,7 @@ export default function About() {
                 • {category.title}
               </h3>
               <div className="flex flex-wrap gap-2 ml-4">
-                {category.skills.map((skill, skillIndex) => <div key={skillIndex} className="neumorphic-inset rounded-xl px-3 py-1.5">
+                {category.skills.map((skill, skillIndex) => <div key={skillIndex} className="neumorphic-inset rounded-xl px-3 py-1.5" style={{ backgroundColor: chipColor }}>
                     <span style={{ color: textColor }} className="text-sm font-medium">{skill}</span>
                   </div>
               )}
@@ -122,7 +131,10 @@ export default function About() {
       </div>
 
       {/* Connect Section */}
-      <div className="neumorphic-shadow rounded-3xl p-8">
+      <div
+        className="neumorphic-shadow rounded-3xl p-8"
+        style={{ backgroundColor: surfaceColor }}
+      >
         <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: textColor }}>
           Let's Connect
         </h2>
@@ -134,9 +146,11 @@ export default function About() {
             href={social.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover flex items-center gap-4">
+            className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover flex items-center gap-4"
+            style={{ backgroundColor: surfaceColor }}
+          >
 
-              <div className="neumorphic-inset rounded-xl p-3">
+              <div className="neumorphic-inset rounded-xl p-3" style={{ backgroundColor: chipColor }}>
                 {typeof social.icon === 'function' ?
               <div style={{ color: subtleTextColor }}>
                     <social.icon />

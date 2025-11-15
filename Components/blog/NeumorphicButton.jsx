@@ -1,5 +1,6 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function NeumorphicButton({ 
   children, 
@@ -11,9 +12,9 @@ export default function NeumorphicButton({
   icon: Icon,
   className = ""
 }) {
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
+  const { palette } = useTheme();
+  const bgColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
   
   return (
     <button

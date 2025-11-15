@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Tag } from "lucide-react";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function Tags() {
   const navigate = useNavigate();
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
+  const { palette } = useTheme();
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const surfaceColor = palette.surfaceBackground;
   
   const { data: posts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
@@ -35,7 +37,10 @@ export default function Tags() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="neumorphic-shadow rounded-3xl p-8">
+      <div
+        className="neumorphic-shadow rounded-3xl p-8"
+        style={{ backgroundColor: surfaceColor }}
+      >
         <h1 className="text-3xl font-bold mb-2 text-center" style={{ color: textColor }}>
           All Tags
         </h1>
@@ -56,6 +61,7 @@ export default function Tags() {
                 key={tag}
                 onClick={() => handleTagClick(tag)}
                 className="neumorphic-shadow rounded-2xl p-6 neumorphic-hover text-center"
+                style={{ backgroundColor: surfaceColor }}
               >
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Tag className="w-5 h-5" style={{ color: subtleTextColor }} />

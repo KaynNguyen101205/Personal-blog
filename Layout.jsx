@@ -4,15 +4,16 @@ import { createPageUrl } from "@/utils";
 import { isAdmin, logout, getUserMode } from "@/utils/auth";
 import { FileText, Archive, Search, Sun, Moon, Github, Facebook, Instagram, Linkedin, Mail, LogOut, User } from "lucide-react";
 import AuthModal from "@/Components/AuthModal";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [userMode, setUserMode] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const { isDarkMode, palette, toggleTheme } = useTheme();
 
   useEffect(() => {
     setUserMode(getUserMode());
@@ -22,18 +23,6 @@ export default function Layout({ children, currentPageName }) {
       setSearchQuery(savedQuery);
     }
   }, [location]);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    localStorage.setItem('theme', !isDarkMode ? 'dark' : 'light');
-  };
 
   const handleLogout = () => {
     logout();
@@ -52,13 +41,13 @@ export default function Layout({ children, currentPageName }) {
     window.location.reload(); // Reload to update UI
   };
 
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode for all text
-  const copyrightColor = isDarkMode ? '#456882' : '#456882'; // Darker color only for copyright
-  const accentColor = isDarkMode ? '#456882' : '#456882';
-  const shadowLight = isDarkMode ? '#2a5370' : '#ffffff';
-  const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
+  const pageBackground = palette.pageBackground;
+  const surfaceBackground = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const copyrightColor = palette.copyright;
+  const shadowLight = palette.shadowLight;
+  const shadowDark = palette.shadowDark;
 
   const navItems = [
     { name: "Posts", path: createPageUrl("Posts") },
@@ -86,7 +75,7 @@ export default function Layout({ children, currentPageName }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ backgroundColor: bgColor, transition: 'background-color 0.3s' }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ backgroundColor: pageBackground, transition: 'background-color 0.3s' }}>
       <style>{`
         * {
           -webkit-font-smoothing: antialiased;
@@ -124,9 +113,12 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {/* Header Navigation */}
-      <header className="py-4 sm:py-6 px-4 sm:px-6" style={{ backgroundColor: bgColor }}>
+      <header className="py-4 sm:py-6 px-4 sm:px-6" style={{ backgroundColor: pageBackground }}>
         <div className="max-w-6xl mx-auto">
-          <nav className="neumorphic-shadow rounded-2xl px-3 sm:px-6 py-3 sm:py-4">
+          <nav
+            className="neumorphic-shadow rounded-2xl px-3 sm:px-6 py-3 sm:py-4"
+            style={{ backgroundColor: surfaceBackground }}
+          >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               {/* Left: Blog Title */}
               <Link
@@ -148,8 +140,9 @@ export default function Layout({ children, currentPageName }) {
                       className={`px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 font-medium text-sm sm:text-base ${
                         isActive(item.path) ? 'neumorphic-pressed' : ''
                       }`}
-                      style={{ 
-                        color: textColor
+                      style={{
+                        color: textColor,
+                        backgroundColor: surfaceBackground
                       }}
                     >
                       {item.name}
@@ -164,8 +157,9 @@ export default function Layout({ children, currentPageName }) {
                     to={createPageUrl("CreatePost")}
                     className="neumorphic-shadow rounded-xl p-2 neumorphic-hover"
                     title="Create Post"
+                    style={{ color: subtleTextColor, backgroundColor: surfaceBackground }}
                   >
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Link>
                 )}
                 
@@ -173,27 +167,30 @@ export default function Layout({ children, currentPageName }) {
                   to={createPageUrl("Archive")}
                   className="neumorphic-shadow rounded-xl p-2 neumorphic-hover"
                   title="Archive"
+                  style={{ color: subtleTextColor, backgroundColor: surfaceBackground }}
                 >
-                  <Archive className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                  <Archive className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Link>
 
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
                   className="neumorphic-shadow rounded-xl p-2 neumorphic-hover"
                   title="Search"
+                  style={{ color: subtleTextColor, backgroundColor: surfaceBackground }}
                 >
-                  <Search className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
 
                 <button
                   onClick={toggleTheme}
                   className="neumorphic-shadow rounded-xl p-2 neumorphic-hover"
                   title="Toggle Theme"
+                  style={{ color: subtleTextColor, backgroundColor: surfaceBackground }}
                 >
                   {isDarkMode ? (
-                    <Sun className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                    <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
                   ) : (
-                    <Moon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                    <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
                   )}
                 </button>
 
@@ -202,16 +199,18 @@ export default function Layout({ children, currentPageName }) {
                     onClick={handleLogout}
                     className="neumorphic-shadow rounded-xl p-2 neumorphic-hover"
                     title="Logout"
+                    style={{ color: subtleTextColor, backgroundColor: surfaceBackground }}
                   >
-                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 ) : userMode === "guest" && (
                   <button
                     onClick={handleShowAdminLogin}
                     className="neumorphic-shadow rounded-xl p-2 neumorphic-hover"
                     title="Login as Admin"
+                    style={{ color: subtleTextColor, backgroundColor: surfaceBackground }}
                   >
-                    <User className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: subtleTextColor }} />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 )}
                 </div>
@@ -220,7 +219,7 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Search Bar */}
             {isSearchOpen && (
-              <div className="mt-4 pt-4 border-t" style={{ borderColor: isDarkMode ? '#2a5370' : '#D2C1B6' }}>
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: palette.border }}>
                 <input
                   type="text"
                   placeholder="Search posts..."
@@ -234,7 +233,7 @@ export default function Layout({ children, currentPageName }) {
                   autoFocus
                   className="w-full px-4 py-3 rounded-xl neumorphic-inset transition-all duration-300 focus:outline-none font-medium"
                   style={{
-                    backgroundColor: bgColor,
+                    backgroundColor: surfaceBackground,
                     color: textColor,
                     border: 'none'
                   }}
@@ -263,7 +262,10 @@ export default function Layout({ children, currentPageName }) {
       {/* Footer */}
       <footer className="py-6 sm:py-8 px-4 sm:px-6 mt-auto w-full overflow-x-hidden">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="neumorphic-shadow rounded-2xl px-4 sm:px-6 py-4">
+          <div
+            className="neumorphic-shadow rounded-2xl px-4 sm:px-6 py-4"
+            style={{ backgroundColor: surfaceBackground }}
+          >
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               {/* Copyright */}
               <div style={{ color: copyrightColor }} className="text-xs sm:text-sm text-center md:text-left">
@@ -280,7 +282,7 @@ export default function Layout({ children, currentPageName }) {
                     rel="noopener noreferrer"
                     className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
                     title={social.label}
-                    style={{ color: textColor }}
+                    style={{ color: textColor, backgroundColor: surfaceBackground }}
                   >
                     {typeof social.icon === 'function' ? <social.icon /> : <social.icon className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </a>

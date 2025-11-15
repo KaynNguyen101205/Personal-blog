@@ -1,28 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { loginWithGmail, isValidGmail } from "@/utils/auth";
 import { isFirebaseEnabled } from "@/lib/firebase";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function GmailLoginModal({ onSuccess, onCancel }) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, palette } = useTheme();
 
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsDarkMode(localStorage.getItem("theme") === "dark");
-    };
-    checkTheme();
-    const interval = setInterval(checkTheme, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  const bgColor = isDarkMode ? "#1B3C53" : "#F9F3EF";
-  const textColor = isDarkMode ? "#D2C1B6" : "#1B3C53";
-  const subtleTextColor = isDarkMode ? "#D2C1B6" : "#456882";
-  const shadowLight = isDarkMode ? "#2a5370" : "#ffffff";
-  const shadowDark = isDarkMode ? "#0d1f2a" : "#d9cec4";
+  const bgColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const shadowLight = palette.shadowLight;
+  const shadowDark = palette.shadowDark;
   const inputBgColor = "#ffffff";
-  const inputTextColor = isDarkMode ? "#000000" : "#1B3C53";
+  const inputTextColor = "#1B3C53";
+
+  const primaryButtonBg = isDarkMode ? "#ffffff" : palette.textPrimary;
+  const primaryButtonColor = isDarkMode ? palette.textPrimary : palette.pageBackground;
+  const secondaryButtonBg = isDarkMode ? bgColor : "#ffffff";
+  const secondaryButtonBorder = isDarkMode ? "#ffffff" : subtleTextColor;
+  const secondaryButtonColor = isDarkMode ? textColor : palette.textPrimary;
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
@@ -70,8 +68,8 @@ export default function GmailLoginModal({ onSuccess, onCancel }) {
           padding: "0.85rem 1.2rem",
           borderRadius: "14px",
           border: "none",
-          backgroundColor: isDarkMode ? "#ffffff" : "#1B3C53",
-          color: isDarkMode ? "#1B3C53" : "#D2C1B6",
+          backgroundColor: primaryButtonBg,
+          color: primaryButtonColor,
           fontSize: "1rem",
           fontWeight: "600",
           cursor: isLoading ? "not-allowed" : "pointer",
@@ -91,9 +89,9 @@ export default function GmailLoginModal({ onSuccess, onCancel }) {
           style={{
             padding: "0.75rem 1rem",
             borderRadius: "12px",
-            border: `2px solid ${isDarkMode ? "#ffffff" : subtleTextColor}`,
-            backgroundColor: isDarkMode ? "#1B3C53" : "#ffffff",
-            color: isDarkMode ? textColor : "#1B3C53",
+            border: `2px solid ${secondaryButtonBorder}`,
+            backgroundColor: secondaryButtonBg,
+            color: secondaryButtonColor,
             fontSize: "1rem",
             cursor: "pointer",
           }}
@@ -125,7 +123,7 @@ export default function GmailLoginModal({ onSuccess, onCancel }) {
           width: "100%",
           padding: "0.75rem",
           borderRadius: "12px",
-          border: `2px solid ${isDarkMode ? bgColor : subtleTextColor}`,
+          border: `2px solid ${secondaryButtonBorder}`,
           backgroundColor: inputBgColor,
           color: inputTextColor,
           fontSize: "1rem",
@@ -142,8 +140,8 @@ export default function GmailLoginModal({ onSuccess, onCancel }) {
             padding: "0.75rem 1.5rem",
             borderRadius: "12px",
             border: "none",
-            backgroundColor: isDarkMode ? "#ffffff" : "#1B3C53",
-            color: isDarkMode ? "#1B3C53" : "#D2C1B6",
+            backgroundColor: primaryButtonBg,
+            color: primaryButtonColor,
             fontSize: "1rem",
             fontWeight: "500",
             cursor: isLoading ? "not-allowed" : "pointer",
@@ -159,9 +157,9 @@ export default function GmailLoginModal({ onSuccess, onCancel }) {
             style={{
               padding: "0.75rem 1rem",
               borderRadius: "12px",
-              border: `2px solid ${isDarkMode ? "#ffffff" : subtleTextColor}`,
-              backgroundColor: isDarkMode ? "#1B3C53" : "#ffffff",
-              color: isDarkMode ? textColor : "#1B3C53",
+              border: `2px solid ${secondaryButtonBorder}`,
+              backgroundColor: secondaryButtonBg,
+              color: secondaryButtonColor,
               fontSize: "1rem",
               cursor: "pointer",
             }}

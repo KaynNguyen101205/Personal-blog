@@ -1,35 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { setUserMode, verifyAdminPassword } from "@/utils/auth";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function AuthModal({ onSelect, adminOnly = false }) {
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [showPasswordInput, setShowPasswordInput] = useState(adminOnly);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Update theme state when it changes
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsDarkMode(localStorage.getItem("theme") === "dark");
-    };
-    
-    checkTheme();
-    
-    // Listen for theme changes
-    const handleStorageChange = () => {
-      checkTheme();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically in case theme changes in same window
-    const interval = setInterval(checkTheme, 100);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
+  const { isDarkMode, palette } = useTheme();
 
   const handleGuest = () => {
     setUserMode("guest");
@@ -53,13 +30,18 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
       setIsLoading(false);
     }
   };
-  const bgColor = isDarkMode ? "#1B3C53" : "#F9F3EF";
-  const textColor = isDarkMode ? "#D2C1B6" : "#1B3C53";
-  const subtleTextColor = isDarkMode ? "#D2C1B6" : "#456882"; // Light in dark mode
-  const inputBgColor = isDarkMode ? "#ffffff" : "#ffffff"; // White input in dark mode
-  const inputTextColor = isDarkMode ? "#000000" : "#1B3C53"; // Black text in white input
-  const shadowLight = isDarkMode ? "#2a5370" : "#ffffff";
-  const shadowDark = isDarkMode ? "#0d1f2a" : "#d9cec4";
+  const bgColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const inputBgColor = "#ffffff";
+  const inputTextColor = "#1B3C53";
+  const shadowLight = palette.shadowLight;
+  const shadowDark = palette.shadowDark;
+  const primaryButtonBg = isDarkMode ? "#ffffff" : palette.textPrimary;
+  const primaryButtonColor = isDarkMode ? palette.textPrimary : palette.pageBackground;
+  const secondaryButtonBg = isDarkMode ? bgColor : "#ffffff";
+  const secondaryButtonBorder = isDarkMode ? "#ffffff" : subtleTextColor;
+  const secondaryButtonColor = isDarkMode ? textColor : palette.textPrimary;
 
   return (
     <div
@@ -102,8 +84,8 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
                   padding: "0.75rem 1.5rem",
                   borderRadius: "12px",
                   border: "none",
-                  backgroundColor: "#456882",
-                  color: "white",
+                  backgroundColor: primaryButtonBg,
+                  color: primaryButtonColor,
                   fontSize: "1rem",
                   fontWeight: "500",
                   cursor: isLoading ? "not-allowed" : "pointer",
@@ -120,8 +102,8 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
                   padding: "0.75rem 1.5rem",
                   borderRadius: "12px",
                   border: "none",
-                  backgroundColor: "#1B3C53",
-                  color: "white",
+                  backgroundColor: bgColor,
+                  color: textColor,
                   fontSize: "1rem",
                   fontWeight: "500",
                   cursor: isLoading ? "not-allowed" : "pointer",
@@ -165,8 +147,8 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
                   padding: "0.75rem 1.5rem",
                   borderRadius: "12px",
                   border: "none",
-                  backgroundColor: isDarkMode ? "#ffffff" : "#1B3C53", // White in dark mode, dark blue in light mode
-                  color: isDarkMode ? "#1B3C53" : "#D2C1B6", // Dark text in dark mode, light text in light mode
+                  backgroundColor: primaryButtonBg,
+                  color: primaryButtonColor,
                   fontSize: "1rem",
                   fontWeight: "500",
                   cursor: isLoading ? "not-allowed" : "pointer",
@@ -188,9 +170,9 @@ export default function AuthModal({ onSelect, adminOnly = false }) {
                 style={{
                   padding: "0.75rem 1rem",
                   borderRadius: "12px",
-                  border: `2px solid ${isDarkMode ? "#ffffff" : subtleTextColor}`, // White border in dark mode, dark border in light mode
-                  backgroundColor: isDarkMode ? "#1B3C53" : "#ffffff", // Dark blue in dark mode, white in light mode
-                  color: isDarkMode ? textColor : "#1B3C53", // Light text in dark mode, dark text in light mode
+                  border: `2px solid ${secondaryButtonBorder}`, // White border in dark mode, dark border in light mode
+                  backgroundColor: secondaryButtonBg, // Dark blue in dark mode, white in light mode
+                  color: secondaryButtonColor, // Light text in dark mode, dark text in light mode
                   fontSize: "1rem",
                   cursor: "pointer",
                 }}

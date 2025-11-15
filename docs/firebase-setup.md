@@ -6,27 +6,7 @@ Follow these steps to connect the blog to Firebase so posts, images, and comment
 - Visit [console.firebase.google.com](https://console.firebase.google.com) and create (or reuse) a project.
 - In **Project settings → General**, add a **Web App** and copy the config values (`apiKey`, `authDomain`, etc.).
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyD1PBXe8jsMM6ylWSVblDz4Xv7tmhXbtjc",
-  authDomain: "bomaycantat-cb6c2.firebaseapp.com",
-  projectId: "bomaycantat-cb6c2",
-  storageBucket: "bomaycantat-cb6c2.firebasestorage.app",
-  messagingSenderId: "257282001534",
-  appId: "1:257282001534:web:ffb1b14b69c5038d79e62f",
-  measurementId: "G-R56QDYEXZ5"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 
 

@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Calendar, Clock, Tag } from "lucide-react";
 import { format } from "date-fns";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function BlogPostCard({ post }) {
   const navigate = useNavigate();
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
+  const { palette } = useTheme();
+  const bgColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const chipColor = palette.chipBackground;
 
   const handleClick = () => {
     navigate(`${createPageUrl("ViewPost")}?id=${post.id}`);
@@ -53,21 +55,30 @@ export default function BlogPostCard({ post }) {
 
         <div className="flex flex-wrap gap-3 text-xs" style={{ color: subtleTextColor }}>
           {post.published_date && (
-            <div className="flex items-center gap-1 neumorphic-inset rounded-xl px-3 py-2">
+            <div
+              className="flex items-center gap-1 neumorphic-inset rounded-xl px-3 py-2"
+              style={{ backgroundColor: chipColor }}
+            >
               <Calendar className="w-3 h-3" />
               <span>{format(new Date(post.published_date), "MMM d, yyyy")}</span>
             </div>
           )}
           
           {post.reading_time && (
-            <div className="flex items-center gap-1 neumorphic-inset rounded-xl px-3 py-2">
+            <div
+              className="flex items-center gap-1 neumorphic-inset rounded-xl px-3 py-2"
+              style={{ backgroundColor: chipColor }}
+            >
               <Clock className="w-3 h-3" />
               <span>{post.reading_time} min read</span>
             </div>
           )}
           
           {!post.published && (
-            <div className="neumorphic-inset rounded-xl px-3 py-2 font-medium">
+            <div
+              className="neumorphic-inset rounded-xl px-3 py-2 font-medium"
+              style={{ backgroundColor: chipColor }}
+            >
               Draft
             </div>
           )}
@@ -79,7 +90,7 @@ export default function BlogPostCard({ post }) {
               <div
                 key={index}
                 className="flex items-center gap-1 neumorphic-inset rounded-xl px-3 py-1 text-xs"
-                style={{ color: subtleTextColor }}
+                style={{ color: subtleTextColor, backgroundColor: chipColor }}
               >
                 <Tag className="w-3 h-3" />
                 <span>{tag}</span>

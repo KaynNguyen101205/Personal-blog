@@ -8,6 +8,7 @@ import { getStorageSize } from "@/utils/storageCleanup";
 import NeumorphicInput from "@/Components/blog/NeumorphicInput";
 import NeumorphicButton from "@/Components/blog/NeumorphicButton";
 import { Save, Eye, Upload, ArrowLeft, Trash2, AlertTriangle, Download } from "lucide-react";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function CreatePost() {
   const navigate = useNavigate();
@@ -16,10 +17,11 @@ export default function CreatePost() {
   const editId = urlParams.get('id');
   const [loading, setLoading] = useState(true);
 
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
+  const { palette } = useTheme();
+  const surfaceColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const chipColor = palette.chipBackground;
 
   const [formData, setFormData] = useState({
     title: "",
@@ -181,7 +183,10 @@ export default function CreatePost() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {storageWarning && (
-        <div className="neumorphic-inset rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: bgColor, border: '2px solid #c66' }}>
+        <div
+          className="neumorphic-inset rounded-2xl p-4 flex items-center gap-3"
+          style={{ backgroundColor: surfaceColor, border: '2px solid #c66' }}
+        >
           <AlertTriangle className="w-5 h-5" style={{ color: '#c66' }} />
           <div className="flex-1">
             <p style={{ color: textColor, fontWeight: 'bold' }}>Storage Warning</p>
@@ -196,8 +201,9 @@ export default function CreatePost() {
         <button
           onClick={() => navigate(createPageUrl("Home"))}
           className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover"
+          style={{ backgroundColor: surfaceColor, color: subtleTextColor }}
         >
-          <ArrowLeft className="w-5 h-5" style={{ color: subtleTextColor }} />
+          <ArrowLeft className="w-5 h-5" />
         </button>
         
         <h1 className="text-2xl font-bold" style={{ color: textColor }}>
@@ -211,9 +217,10 @@ export default function CreatePost() {
               alert('posts.json downloaded. Replace src/data/posts.json and commit so the update stays after redeploy.');
             }}
             className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover flex items-center gap-2"
+            style={{ backgroundColor: surfaceColor, color: subtleTextColor }}
           >
-            <Download className="w-5 h-5" style={{ color: subtleTextColor }} />
-            <span style={{ color: subtleTextColor }}>Download posts.json</span>
+            <Download className="w-5 h-5" />
+            <span>Download posts.json</span>
           </button>
 
           {editId && (
@@ -221,6 +228,7 @@ export default function CreatePost() {
               onClick={() => deleteMutation.mutate()}
               className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover"
               disabled={deleteMutation.isPending}
+              style={{ backgroundColor: surfaceColor }}
             >
               <Trash2 className="w-5 h-5" style={{ color: '#c66' }} />
             </button>
@@ -228,7 +236,10 @@ export default function CreatePost() {
         </div>
       </div>
 
-      <div className="neumorphic-shadow rounded-3xl p-8 space-y-6">
+      <div
+        className="neumorphic-shadow rounded-3xl p-8 space-y-6"
+        style={{ backgroundColor: surfaceColor }}
+      >
         <NeumorphicInput
           label="Title"
           value={formData.title}
@@ -252,7 +263,10 @@ export default function CreatePost() {
           </label>
           
           {formData.cover_image && (
-            <div className="neumorphic-inset rounded-2xl p-4 relative">
+            <div
+              className="neumorphic-inset rounded-2xl p-4 relative"
+              style={{ backgroundColor: surfaceColor }}
+            >
               <img
                 src={formData.cover_image}
                 alt="Cover"
@@ -271,6 +285,7 @@ export default function CreatePost() {
                 }}
                 className="absolute top-2 right-2 neumorphic-shadow rounded-lg p-2 neumorphic-hover"
                 title="Remove cover image"
+                style={{ backgroundColor: surfaceColor }}
               >
                 <Trash2 className="w-4 h-4" style={{ color: '#c66' }} />
               </button>
@@ -285,9 +300,12 @@ export default function CreatePost() {
               className="hidden"
               key={formData.cover_image} // Reset input when image changes
             />
-            <div className="neumorphic-shadow rounded-2xl p-4 cursor-pointer neumorphic-hover text-center">
+            <div
+              className="neumorphic-shadow rounded-2xl p-4 cursor-pointer neumorphic-hover text-center"
+              style={{ backgroundColor: surfaceColor, color: subtleTextColor }}
+            >
               <Upload className="w-6 h-6 mx-auto mb-2" style={{ color: subtleTextColor }} />
-              <span style={{ color: subtleTextColor }}>
+              <span>
                 {uploading ? "Uploading..." : formData.cover_image ? "Change Cover Image" : "Upload Cover Image"}
               </span>
             </div>
@@ -318,7 +336,7 @@ export default function CreatePost() {
               placeholder="Add a tag..."
               className="flex-1 px-5 py-4 rounded-2xl neumorphic-inset transition-all duration-300 focus:outline-none font-medium"
               style={{
-                backgroundColor: bgColor,
+                backgroundColor: surfaceColor,
                 color: textColor,
                 border: 'none'
               }}
@@ -326,7 +344,7 @@ export default function CreatePost() {
             <button
               onClick={handleAddTag}
               className="neumorphic-shadow rounded-2xl px-6 neumorphic-hover"
-              style={{ color: subtleTextColor }}
+              style={{ color: subtleTextColor, backgroundColor: surfaceColor }}
             >
               Add
             </button>
@@ -337,7 +355,8 @@ export default function CreatePost() {
               {formData.tags.map((tag, index) => (
                 <div
                   key={index}
-                  className="neumorphic-inset rounded-xl px-4 py-2 flex items-center gap-2"
+                className="neumorphic-inset rounded-xl px-4 py-2 flex items-center gap-2"
+                style={{ backgroundColor: chipColor }}
                 >
                   <span style={{ color: textColor }}>{tag}</span>
                   <button

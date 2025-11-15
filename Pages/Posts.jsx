@@ -4,42 +4,20 @@ import { useQuery } from "@tanstack/react-query";
 import BlogPostCard from "@/Components/blog/BlogPostCard";
 import { isAdmin } from "@/utils/auth";
 import { X } from "lucide-react";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function Posts() {
   const [filterPublished, setFilterPublished] = useState("all");
   const [selectedTag, setSelectedTag] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { palette } = useTheme();
 
-  // Update theme state when it changes
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsDarkMode(localStorage.getItem('theme') === 'dark');
-    };
-    
-    checkTheme();
-    
-    // Listen for theme changes
-    const handleStorageChange = () => {
-      checkTheme();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically in case theme changes in same window
-    const interval = setInterval(checkTheme, 100);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882';
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const shadowLight = isDarkMode ? '#2a5370' : '#ffffff';
-  const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const surfaceColor = palette.surfaceBackground;
+  const chipColor = palette.chipBackground;
+  const shadowLight = palette.shadowLight;
+  const shadowDark = palette.shadowDark;
 
   useEffect(() => {
     // Check for tag in URL
@@ -123,7 +101,10 @@ export default function Posts() {
     <div className="space-y-8">
       {/* Active Filters Indicator */}
       {hasActiveFilters && (
-        <div className="neumorphic-inset rounded-2xl p-4 flex items-center justify-between">
+        <div
+          className="neumorphic-inset rounded-2xl p-4 flex items-center justify-between"
+          style={{ backgroundColor: surfaceColor }}
+        >
           <span style={{ color: textColor }}>
             Filters active: {searchQuery.trim() && `Search: "${searchQuery.trim()}"`} {searchQuery.trim() && selectedTag && ' • '} {selectedTag && `Tag: ${selectedTag}`}
           </span>
@@ -136,7 +117,7 @@ export default function Posts() {
               window.dispatchEvent(new Event('blogSearchUpdate'));
             }}
             className="neumorphic-shadow rounded-xl px-4 py-2 neumorphic-hover text-sm"
-            style={{ color: textColor }}
+            style={{ color: textColor, backgroundColor: surfaceColor }}
           >
             Clear Filters
           </button>
@@ -147,14 +128,14 @@ export default function Posts() {
       <div 
         className="neumorphic-shadow rounded-3xl p-6"
         style={{
-          backgroundColor: bgColor,
+          backgroundColor: surfaceColor,
           boxShadow: `8px 8px 16px ${shadowDark}, -8px -8px 16px ${shadowLight}`
         }}
       >
         <div 
           className="flex gap-2 neumorphic-inset rounded-2xl p-2"
           style={{
-            backgroundColor: bgColor,
+            backgroundColor: surfaceColor,
             boxShadow: `inset 6px 6px 12px ${shadowDark}, inset -6px -6px 12px ${shadowLight}`
           }}
         >
@@ -167,7 +148,7 @@ export default function Posts() {
               }`}
               style={{ 
                 color: textColor,
-                backgroundColor: filterPublished === filter ? bgColor : 'transparent',
+                backgroundColor: filterPublished === filter ? chipColor : surfaceColor,
                 boxShadow: filterPublished === filter 
                   ? `inset 4px 4px 8px ${shadowDark}, inset -4px -4px 8px ${shadowLight}`
                   : 'none'
@@ -181,7 +162,10 @@ export default function Posts() {
 
       {/* Selected Tag Display */}
       {selectedTag && (
-        <div className="neumorphic-shadow rounded-2xl p-4 flex items-center justify-between">
+        <div
+          className="neumorphic-shadow rounded-2xl p-4 flex items-center justify-between"
+          style={{ backgroundColor: surfaceColor }}
+        >
           <span style={{ color: textColor }}>
             Showing posts tagged with: <strong>{selectedTag}</strong>
           </span>
@@ -191,6 +175,7 @@ export default function Posts() {
               window.history.pushState({}, '', window.location.pathname);
             }}
             className="neumorphic-inset rounded-xl p-2 neumorphic-hover"
+            style={{ backgroundColor: surfaceColor }}
           >
             <X className="w-4 h-4" style={{ color: textColor }} />
           </button>
@@ -211,7 +196,10 @@ export default function Posts() {
           ))}
         </div>
       ) : (
-        <div className="neumorphic-shadow rounded-3xl p-12 text-center">
+        <div
+          className="neumorphic-shadow rounded-3xl p-12 text-center"
+          style={{ backgroundColor: surfaceColor }}
+        >
           <p className="text-lg" style={{ color: textColor }}>
             {searchQuery
               ? `No posts found matching "${searchQuery}"`

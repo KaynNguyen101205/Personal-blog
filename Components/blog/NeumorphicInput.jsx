@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function NeumorphicInput({
   label,
@@ -11,10 +12,10 @@ export default function NeumorphicInput({
   required = false,
   className = ""
 }) {
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const labelColor = isDarkMode ? '#D2C1B6' : '#456882';
+  const { palette } = useTheme();
+  const bgColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const labelColor = palette.textSecondary;
 
   const baseClasses = `
     w-full px-5 py-4 rounded-2xl

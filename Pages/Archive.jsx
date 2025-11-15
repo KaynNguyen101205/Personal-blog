@@ -5,12 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function Archive() {
   const navigate = useNavigate();
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882'; // Light in dark mode
+  const { palette } = useTheme();
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const surfaceColor = palette.surfaceBackground;
   
   const { data: posts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
@@ -41,7 +43,10 @@ export default function Archive() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="neumorphic-shadow rounded-3xl p-8">
+      <div
+        className="neumorphic-shadow rounded-3xl p-8"
+        style={{ backgroundColor: surfaceColor }}
+      >
         <h1 className="text-3xl font-bold mb-2 text-center" style={{ color: textColor }}>
           Archive
         </h1>
@@ -64,7 +69,11 @@ export default function Archive() {
                 </h2>
                 
                 {Object.entries(groupedPosts[year]).map(([month, monthPosts]) => (
-                  <div key={month} className="neumorphic-inset rounded-2xl p-6 space-y-3">
+                  <div
+                    key={month}
+                    className="neumorphic-inset rounded-2xl p-6 space-y-3"
+                    style={{ backgroundColor: surfaceColor }}
+                  >
                     <h3 className="text-lg font-semibold mb-4" style={{ color: textColor }}>
                       {month}
                     </h3>
@@ -75,6 +84,7 @@ export default function Archive() {
                           key={post.id}
                           onClick={() => handlePostClick(post.id)}
                           className="w-full text-left px-4 py-3 rounded-xl neumorphic-hover flex items-start justify-between gap-4"
+                          style={{ backgroundColor: surfaceColor }}
                         >
                           <span className="font-medium flex-1" style={{ color: textColor }}>
                             {post.title}

@@ -5,6 +5,7 @@ import { isAdmin, isGmailLoggedIn, getGmailEmail, logoutGmail, onGmailAuthStateC
 import { MessageCircle, Send, Trash2, LogOut, Download } from "lucide-react";
 import { format } from "date-fns";
 import GmailLoginModal from "@/Components/GmailLoginModal";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function CommentSection({ postId }) {
   const [author, setAuthor] = useState("");
@@ -12,14 +13,13 @@ export default function CommentSection({ postId }) {
   const [showGmailLogin, setShowGmailLogin] = useState(false);
   const [currentEmail, setCurrentEmail] = useState(() => getGmailEmail() || "");
   const queryClient = useQueryClient();
-
-  const isDarkMode = localStorage.getItem("theme") === "dark";
-  const bgColor = isDarkMode ? "#1B3C53" : "#F9F3EF";
-  const textColor = isDarkMode ? "#D2C1B6" : "#1B3C53";
-  const subtleTextColor = isDarkMode ? "#D2C1B6" : "#456882";
-  const shadowLight = isDarkMode ? "#2a5370" : "#ffffff";
-  const shadowDark = isDarkMode ? "#0d1f2a" : "#d9cec4";
-  const borderColor = isDarkMode ? "#2a5370" : "#D2C1B6";
+  const { palette } = useTheme();
+  const bgColor = palette.surfaceBackground;
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const shadowLight = palette.shadowLight;
+  const shadowDark = palette.shadowDark;
+  const borderColor = palette.border;
 
   useEffect(() => {
     setCurrentEmail(getGmailEmail() || "");

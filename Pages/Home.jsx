@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { blogApi } from "@/api/blogApi";
 import { useQuery } from "@tanstack/react-query";
@@ -6,26 +6,16 @@ import { createPageUrl } from "@/utils";
 import { isAdmin } from "@/utils/auth";
 import { Calendar, ArrowRight, Github, Facebook, Instagram, Linkedin, Mail } from "lucide-react";
 import { format } from "date-fns";
+import { useTheme } from "@src/hooks/useTheme";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { palette } = useTheme();
 
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsDarkMode(localStorage.getItem('theme') === 'dark');
-    };
-    checkTheme();
-    const interval = setInterval(checkTheme, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  const textColor = isDarkMode ? '#D2C1B6' : '#1B3C53';
-  const subtleTextColor = isDarkMode ? '#D2C1B6' : '#456882';
-  const bgColor = isDarkMode ? '#1B3C53' : '#F9F3EF';
-  const shadowLight = isDarkMode ? '#2a5370' : '#ffffff';
-  const shadowDark = isDarkMode ? '#0d1f2a' : '#d9cec4';
-  const borderColor = isDarkMode ? '#2a5370' : '#D2C1B6';
+  const textColor = palette.textPrimary;
+  const subtleTextColor = palette.textSecondary;
+  const surfaceColor = palette.surfaceBackground;
+  const borderColor = palette.border;
 
   const { data: posts = [] } = useQuery({
     queryKey: ['blogPosts'],
@@ -104,7 +94,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="neumorphic-shadow rounded-lg p-2 neumorphic-hover"
                 title={social.label}
-                style={{ color: subtleTextColor }}
+                style={{ color: subtleTextColor, backgroundColor: surfaceColor }}
               >
                 {typeof social.icon === 'function' ? <social.icon /> : <social.icon className="w-5 h-5" />}
               </a>
@@ -129,7 +119,7 @@ export default function Home() {
                 key={post.id}
                 onClick={() => navigate(`${createPageUrl("ViewPost")}?id=${post.id}`)}
                 className="neumorphic-shadow rounded-2xl p-6 cursor-pointer neumorphic-hover transition-all duration-300"
-                style={{ backgroundColor: bgColor }}
+                style={{ backgroundColor: surfaceColor }}
               >
                 <h3 
                   className="text-xl font-bold mb-2 hover:opacity-80 transition-opacity"
@@ -167,7 +157,7 @@ export default function Home() {
             onClick={() => navigate(createPageUrl("Posts"))}
             className="neumorphic-shadow rounded-xl px-6 py-3 neumorphic-hover inline-flex items-center gap-2"
             style={{
-              backgroundColor: bgColor,
+              backgroundColor: surfaceColor,
               color: textColor,
             }}
           >

@@ -126,16 +126,17 @@ const compressImage = (
 const readFileAsDataUrl = async (file) => {
   console.log("Reading file as data URL...");
   
-  // Always compress images larger than 200KB to ensure they fit in Firestore
-  // Firestore has 1MB document limit, and base64 increases size by ~33%
-  if (file.size > 200 * 1024 && file.type.startsWith("image/")) {
+  // Compress images larger than 300KB to ensure they fit in Firestore after base64 encoding
+  // Firestore has 1MB document limit, base64 adds ~33% overhead
+  // We compress to ~700KB which becomes ~930KB base64 (fits in 1MB)
+  if (file.size > 300 * 1024 && file.type.startsWith("image/")) {
     try {
-      console.log("Compressing image to fit in Firestore (this may take a moment)...");
-      // More aggressive compression for Firestore storage
-      return await compressImage(file, 1000, 700, 0.6);
+      console.log("Pre-compressing image to fit in Firestore (this may take a moment)...");
+      // Moderate compression - will be further compressed if needed in uploadImageRemote
+      return await compressImage(file, 1200, 900, 0.7);
     } catch (error) {
-      console.warn("Image compression failed, trying original:", error);
-      // If compression fails, try reading original (might be small enough)
+      console.warn("Pre-compression failed, will compress during upload:", error);
+      // If compression fails, read original and let uploadImageRemote handle it
     }
   }
 
@@ -324,42 +325,57 @@ const dataURLtoBlob = (dataurl) => {
 };
 
 // Upload image using base64 data URL directly (stores in Firestore as data URL)
-// This works without any external service but has size limitations
+// Firestore has 1MB document limit, base64 adds ~33% overhead
+// So we compress 1MB files to ~700KB which becomes ~930KB base64 (fits in 1MB)
 const uploadImageRemote = async (file, dataUrl) => {
   // Validate file type
   if (!file.type || !file.type.startsWith('image/')) {
     throw new Error("File must be an image. Please select an image file.");
   }
   
-  // Validate file size (500KB limit for base64 in Firestore to stay safe)
-  // Firestore documents have 1MB limit, and base64 increases size by ~33%
-  const maxSize = 500 * 1024; // 500KB (safe limit for Firestore)
+  // Validate file size (1MB limit - will be compressed to fit Firestore)
+  const maxSize = 1 * 1024 * 1024; // 1MB
   if (file.size > maxSize) {
-    throw new Error("Image size must be less than 500KB for direct storage. The image will be compressed automatically.");
+    throw new Error("Image size must be less than 1MB. The image will be compressed automatically to fit in Firestore.");
   }
   
   console.log("Storing image as base64 data URL...");
-  console.log("File size:", file.size, "bytes");
+  console.log("File size:", (file.size / 1024).toFixed(2), "KB");
   console.log("File type:", file.type);
   
   try {
     // Check if data URL is too large (Firestore 1MB document limit)
-    // Base64 encoding increases size by ~33%, so we check the data URL size
+    // Base64 encoding increases size by ~33%, so we need final size < 1MB
+    // That means compressed image should be < ~750KB to be safe
     const dataUrlSize = new Blob([dataUrl]).size;
-    const maxDataUrlSize = 700 * 1024; // 700KB to stay under 1MB limit
+    const maxDataUrlSize = 950 * 1024; // 950KB to stay safely under 1MB limit
+    
+    console.log("Data URL size:", (dataUrlSize / 1024).toFixed(2), "KB");
     
     if (dataUrlSize > maxDataUrlSize) {
-      console.warn("Image is too large even after compression, trying to compress more...");
-      // Try compressing with lower quality
-      const compressed = await compressImage(file, 800, 600, 0.5);
-      const compressedSize = new Blob([compressed]).size;
+      console.warn("Image is too large even after compression, compressing more aggressively...");
       
-      if (compressedSize > maxDataUrlSize) {
-        throw new Error("Image is too large to store directly. Please use a smaller image (under 300KB original size).");
+      // Progressive compression - try different quality levels
+      const compressionLevels = [
+        { width: 1200, height: 900, quality: 0.65 },  // First try: moderate compression
+        { width: 1000, height: 750, quality: 0.55 },  // Second try: more compression
+        { width: 800, height: 600, quality: 0.45 }    // Last try: maximum compression
+      ];
+      
+      for (const level of compressionLevels) {
+        console.log(`Trying compression: ${level.width}x${level.height} at ${(level.quality * 100).toFixed(0)}% quality...`);
+        const compressed = await compressImage(file, level.width, level.height, level.quality);
+        const compressedSize = new Blob([compressed]).size;
+        console.log(`Compressed size: ${(compressedSize / 1024).toFixed(2)} KB`);
+        
+        if (compressedSize <= maxDataUrlSize) {
+          console.log("Compression successful! Image fits in Firestore.");
+          return compressed;
+        }
       }
       
-      console.log("Using more compressed version");
-      return compressed;
+      // If all compression levels fail, throw error
+      throw new Error("Image is too large to store even after maximum compression. Please use an image smaller than 1MB or compress it manually.");
     }
     
     console.log("Image stored successfully as data URL");

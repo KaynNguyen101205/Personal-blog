@@ -51,3 +51,5 @@ Thumbs.db
 *.temp
 .cache
 
+firestore.rules
+storage.rules

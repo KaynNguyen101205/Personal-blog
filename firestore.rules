@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /posts/{postId} {
+      // Allow everyone to read posts
+      allow read: if true;
+
+      // Allow writes either for authenticated Gmail users or for
+      // unauthenticated callers (your password-only admin).
+      // This allows both authenticated Gmail users AND unauthenticated users
+      allow create: if request.auth == null 
+                    || (request.auth != null 
+                        && request.auth.token.email != null 
+                        && request.auth.token.email.matches('.*@(gmail|googlemail)\\.com$'));
+      
+      allow update: if request.auth == null 
+                    || (request.auth != null 
+                        && request.auth.token.email != null 
+                        && request.auth.token.email.matches('.*@(gmail|googlemail)\\.com$'));
+      
+      allow delete: if request.auth == null 
+                    || (request.auth != null 
+                        && request.auth.token.email != null 
+                        && request.auth.token.email.matches('.*@(gmail|googlemail)\\.com$'));
+    }
+
+    match /comments/{commentId} {
+      // Allow everyone to read comments
+      allow read: if true;
+
+      // Still require Gmail sign-in to create comments so the old behavior stays.
+      allow create: if request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.matches('.*@(gmail|googlemail)\\.com$');
+
+      // Comment can be deleted by its owner or by a signed-in Gmail admin.
+      allow delete: if request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.matches('.*@(gmail|googlemail)\\.com$')
+        && (request.auth.token.email == resource.data.email
+            || request.auth.token.email == 'nkayn7904@gmail.com');
+    }
+  }
+}
+

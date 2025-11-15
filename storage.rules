@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow writes to uploads folder for unauthenticated users
+    // (since your admin system uses localStorage, not Firebase auth)
+    match /uploads/{fileName} {
+      // Allow read access to uploaded images
+      allow read: if true;
+      
+      // Allow write (create/update) for unauthenticated users
+      // This works with your localStorage-based admin system
+      // Simplified: Allow all writes (client-side validation handles file type/size)
+      allow write: if true;
+      
+      // Allow delete for unauthenticated users
+      allow delete: if true;
+    }
+    
+    // Allow public read access to all other files
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+  }
+}
+

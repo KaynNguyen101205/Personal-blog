@@ -7,7 +7,7 @@ import { isAdmin } from "@/utils/auth";
 import { getStorageSize } from "@/utils/storageCleanup";
 import NeumorphicInput from "@/Components/blog/NeumorphicInput";
 import NeumorphicButton from "@/Components/blog/NeumorphicButton";
-import { Save, Eye, Upload, ArrowLeft, Trash2, AlertTriangle, Download } from "lucide-react";
+import { Save, Eye, Upload, ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import { useTheme } from "@src/hooks/useTheme";
 
 export default function CreatePost() {
@@ -72,8 +72,6 @@ export default function CreatePost() {
       if (editId) {
         queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
       }
-      await blogApi.exportPostsToFile();
-      alert('posts.json downloaded. Please replace src/data/posts.json and commit so the update stays after redeploy.');
       navigate(createPageUrl("Posts"));
     },
     onError: (error) => {
@@ -88,8 +86,6 @@ export default function CreatePost() {
       console.log('Post updated successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
       queryClient.invalidateQueries({ queryKey: ['blogPost', editId] });
-      await blogApi.exportPostsToFile();
-      alert('posts.json downloaded. Please replace src/data/posts.json and commit so the update stays after redeploy.');
       navigate(createPageUrl("Posts"));
     },
     onError: (error) => {
@@ -211,18 +207,6 @@ export default function CreatePost() {
         </h1>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={async () => {
-              await blogApi.exportPostsToFile();
-              alert('posts.json downloaded. Replace src/data/posts.json and commit so the update stays after redeploy.');
-            }}
-            className="neumorphic-shadow rounded-2xl p-4 neumorphic-hover flex items-center gap-2"
-            style={{ backgroundColor: surfaceColor, color: subtleTextColor }}
-          >
-            <Download className="w-5 h-5" />
-            <span>Download posts.json</span>
-          </button>
-
           {editId && (
             <button
               onClick={() => deleteMutation.mutate()}
